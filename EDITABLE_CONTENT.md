@@ -141,5 +141,13 @@ def mark_identified_scene_type(scene_type):
             - We are done!!! Should be able to skip the remainder of every episode! 
                 - Meaning we don't have to process entire episodes if we can find those few items!
 
+def mark_sequence_to_keep():
+    '''
+        - Record the start time / start frame
+        - We list these in our review section. 
+        - The cuts we want to make are marked as cut (but user can change)
+        - These ones are marked as keep (but user can change)
+    '''
+
 
 ```
