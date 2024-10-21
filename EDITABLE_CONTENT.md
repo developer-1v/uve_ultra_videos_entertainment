@@ -113,7 +113,6 @@ next_sequence_within_first_5_minutes_of_current_video = False
 if sequence_showed_up_in_last_3_episodes:
     if sequence_duration_seconds < 15:
         mark_commercial_breaks()
-        note_average_time()
     elif sequence_start_time_minutes <= 5:
         mark_opening_scene()
     elif sequence_end_time_minutes >= 55:  # Assuming a 60-minute video
@@ -122,6 +121,25 @@ elif first_sequence_within_last_5_minutes_of_last_video and next_sequence_within
     mark_ending_flashback_on_opening_of_next_video()
 else:
     mark_sequence_to_keep()
+
+def mark_identified_scene_type(scene_type):
+    ''' 
+        - Mark this scene type
+        - Record the start time / start frame
+            - If this is a type with a known duration (opening/closing/commercial)
+                - record the duration & number of frames (dependent on frame rate)
+
+        For Future scene types:
+            - We can quickly look for that specific scene start frame 
+            by looking within a region close to the previous recorded start times
+            and maybe the average of those start times, then look forward and backward 
+            (maybe in two different threads?)
+
+        Then we can shortcut practically all other processing for all other episodes:
+            - Find the opening, closing, commercial breaks. 
+            - look for any ending flashbacks that are close to the next opening. 
+            - We are done!!! Should be able to skip the remainder of every episode! 
+                - Meaning we don't have to process entire episodes if we can find those few items!
 
 
 ```
