@@ -32,6 +32,8 @@ This file is organized by:
 
 - Commercial Breaks (delete):
     - Must appear in at least __ 3 (user-defined) videos.
+    - HOW ELSE can I distinguish these from the repeated video sequences with different audio, 
+    or the story flashbacks?
 
 - Black Scenes (keep):
     (often meant for transitions or for dramatic effect. Also, would be very hard to dinstinguish and eliminate). 
@@ -72,9 +74,9 @@ This file is organized by:
 # RULE categories:
 - length
 - time location
-- time location in comparison to the other reoccurence of this sequence
-- number # of reocurrences
-- not another identified scene type (opening/closing/commercial etc)
+- time location in comparison to the other reoccurences of this sequence
+- number of reocurrences
+- not another identified scene type (opening/closing etc)
 
 
 # 🌳 Decision Trees for frame sequences:
@@ -84,9 +86,12 @@ This file is organized by:
         - ✅ Yes:
             - Is it shorter than (15) seconds?
                 - ✅ Yes:
-                    - Commercial Break(s)
-                        - Mark all for deletion.
-                        - note the average time. 
+                    - mark for possible commercial breaks
+                        - If consistenly continues to show up in other episodes,
+                            - ✅ Yes:
+                                - Commercial Break(s)
+                                    - Mark all for deletion.
+                                    - note the average time. 
                 - ❌ No:
                     Does this appear within the first (5) minutes of the video?
                         - ✅ Yes:
@@ -106,19 +111,23 @@ This file is organized by:
 # Decision Tree as python if/else statements:
 ```py
 
-first_sequence_within_last_5_minutes_of_last_video = False
-next_sequence_within_first_5_minutes_of_current_video = False
+sequence_within_last_5_minutes_of_last_video = False
+equence_within_first_5_minutes_of_current_video = False
 
 # Updated logic with realistic variables and marking actions
 if sequence_showed_up_in_last_3_episodes:
     if sequence_duration_seconds < 15:
-        mark_commercial_breaks()
+        mark_possible_commercial_break()
+            if sequence_shows_up_in_every_episode_so_far:
+                mark_commercial_break()
     elif sequence_start_time_minutes <= 5:
         mark_opening_scene()
-    elif sequence_end_time_minutes >= 55:  # Assuming a 60-minute video
+    elif sequence_end_time_minutes >= (video_duration_minutes - 5):
         mark_closing_scene()
-elif first_sequence_within_last_5_minutes_of_last_video and next_sequence_within_first_5_minutes_of_current_video:
-    mark_ending_flashback_on_opening_of_next_video()
+elif sequence_within_last_5_minutes_of_last_video and sequence_within_first_5_minutes_of_current_video:
+    ## list of sequences, all but the first one
+    for sequence in list_of_this_sequence[1:]:
+        mark_as_an_ending_flashback() ## we skip the first one because we don't want to delete it. 
 else:
     mark_sequence_to_keep()
 
