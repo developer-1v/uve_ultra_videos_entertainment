@@ -1,45 +1,43 @@
 from rich import print as pprint
 
 
+def merge_frames(input_dict):
+    from itertools import chain
 
-def reorganize_frames(input_data):
-    output = {}
-    extras = {}
-    sequence_counter = 0
-    
-    # Initialize the first sequence
-    output[f'sequence {sequence_counter}'] = {key: [] for key in next(iter(input_data.values()))}
-    
-    for clip, values in input_data.items():
-        if clip == f'clip {len(input_data) - 1}':
-            extras = values
-            continue
+    # Initialize the output and extras dictionaries
+    output = {'sequence 0': {'a': [], 'b': [], 'c': []}}
+    extras = {'a': [], 'b': [], 'c': []}
+
+    # Flatten the input dictionary values and sort them
+    for key in ['a', 'b', 'c']:
+        all_values = sorted(chain.from_iterable(d[key] for d in input_dict.values()))
         
-        if all(not lst for lst in values.values()):
-            sequence_counter += 1
-            output[f'sequence {sequence_counter}'] = {key: [] for key in values}
+        # Initialize the first sequence
+        current_sequence = output['sequence 0'][key]
         
-        for key, lst in values.items():
-            output[f'sequence {sequence_counter}'][key].extend(lst)
-    
-    # Remove empty sequences
-    output = {k: v for k, v in output.items() if any(v.values())}
-    
-    # Renumber sequences
-    output = {f'sequence {i}': v for i, v in enumerate(output.values())}
-    
+        # Iterate over sorted values to separate into sequences
+        for i, value in enumerate(all_values):
+            if i == 0 or value == all_values[i - 1] + 1:
+                current_sequence.append(value)
+            else:
+                extras[key].append(value)
+
+    # Add the second sequence for the remaining values
+    output['sequence 1'] = {key: extras[key] for key in ['a', 'b', 'c']}
+    extras = {key: [] for key in ['a', 'b', 'c']}
+
     return output, extras
 
 
 
 if __name__ == '__main__':
     input = {
-        'clip 1': {'a': [6], 'b': [47], 'c': [25]},
-        'clip 2': {'a': [7, 8, 9], 'b': [48, 49, 50], 'c': [26, 27, 28]},
-        'clip 3': {'a': [10, 11, 12, 13, 14, 15], 'b': [51, 52, 53, 54, 55, 56, 57, 58], 'c': [29, 30, 31, 32, 33, 34]},
-        'clip 4': {'a': [16, 17, 18], 'b': [59], 'c': [35, 36, 37]},
-        'clip 5': {'a': [23, 34], 'b': [4, 35], 'c': [42, 53]},
-        'clip 6': {'a': [97, 98, 99], 'b': [88, 89, 90], 'c': [76, 77, 78]},
+        'afa': {'a': [6], 'b': [47], 'c': [25]},
+        'gafs': {'a': [7, 8, 9], 'b': [48, 49, 50], 'c': [26, 27, 28]},
+        'hgs': {'a': [10, 11, 12, 13, 14, 15], 'b': [51, 52, 53, 54, 55, 56, 57, 58], 'c': [29, 30, 31, 32, 33, 34]},
+        '3fsa': {'a': [16, 17, 18], 'b': [59], 'c': [35, 36, 37]},
+        'gaf': {'a': [23, 34], 'b': [4, 35], 'c': [42, 53]},
+        'hgd': {'a': [97, 98, 99], 'b': [88, 89, 90], 'c': [76, 77, 78]},
     }
     
     desired_output = {
@@ -61,8 +59,8 @@ if __name__ == '__main__':
         'c': [42, 53],
     }
     
-    output, extras = reorganize_frames(input)
-    output = separate_into_sequences(output)
+    output, extras = merge_frames(input)
+    # output = separate_into_sequences(output)
     print(output == desired_output)
     print(extras == desired_extras)
     pprint(output)
