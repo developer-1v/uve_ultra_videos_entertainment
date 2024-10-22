@@ -36,14 +36,17 @@ def reorganize_sequences(sequences):
 
 def identify_continuous_sequences(conflicting_frame_hashes, video_names, max_gap=1):
     def can_extend_sequence(current_sequence, frames, max_gap):
-        return all(
-            not current_sequence[video] or (frames[video] and min(frames[video]) <= max(current_sequence[video]) + max_gap)
-            for video in video_names
-        )
+        for video in video_names:
+            if current_sequence[video]:
+                last_frame = max(current_sequence[video])
+                if frames[video] and min(frames[video]) > last_frame + max_gap:
+                    return False
+        return True
 
     def extend_sequence(current_sequence, frames):
         for video in video_names:
-            current_sequence[video].extend(frames[video])
+            if frames[video]:
+                current_sequence[video].extend(frames[video])
 
     def finalize_sequence(current_sequence):
         for video in video_names:
@@ -68,14 +71,26 @@ def identify_continuous_sequences(conflicting_frame_hashes, video_names, max_gap
         finalize_sequence(current_sequence)
         sequences.append(current_sequence)
 
+    # Merge sequences that can be combined
+    merged_sequences = []
+    for seq in sequences:
+        if not merged_sequences:
+            merged_sequences.append(seq)
+        else:
+            last_seq = merged_sequences[-1]
+            if can_extend_sequence(last_seq, seq, max_gap):
+                extend_sequence(last_seq, seq)
+                finalize_sequence(last_seq)
+            else:
+                merged_sequences.append(seq)
+
     # Ensure sequences are in the order of video_names
     ordered_sequences = []
-    for seq in sequences:
+    for seq in merged_sequences:
         ordered_seq = {video: seq[video] for video in video_names}
         ordered_sequences.append(ordered_seq)
 
     return ordered_sequences
-
 
 
 def find_possible_sequences(conflicting_frame_hashes, max_gap=1):
