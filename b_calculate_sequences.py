@@ -69,45 +69,45 @@ def remove_non_continuous_sequences(conflicting_frame_hashes, video_names, max_g
         
     return conflicting_frame_hashes
     
-def identify_continuous_sequences(conflicting_frame_hashes, video_names, max_gap=1):
-    sequences = []
-    possible_frames = []
+def identify_continuous_sequences(conflicting_frame_hashes, max_gap=1):
+    sequences = {}
+    video_names = extract_video_names(conflicting_frame_hashes)
 
-    # Extract frames for the first video
-    first_video = list(video_names)[0]
-    all_frames_first_video = []
+    for video in video_names:
+        all_frames = []
+        for frames in conflicting_frame_hashes.values():
+            if video in frames:
+                all_frames.extend(frames[video])
+        
+        all_frames = sorted(set(all_frames))
+        current_sequence = []
+        last_frame = None
 
-    for frames in conflicting_frame_hashes.values():
-        if first_video in frames:
-            all_frames_first_video.append(frames[first_video])
+        for frame in all_frames:
+            if last_frame is None or frame - last_frame <= max_gap:
+                current_sequence.append(frame)
+            else:
+                if current_sequence:
+                    sequence_key = f"sequence {len(sequences)}"
+                    if sequence_key not in sequences:
+                        sequences[sequence_key] = {}
+                    sequences[sequence_key][video] = current_sequence
+                current_sequence = [frame]
+            last_frame = frame
 
-    # Flatten the list of frames and sort them
-    all_frames_first_video = sorted([frame for sublist in all_frames_first_video for frame in sublist])
-
-    current_sequence = [all_frames_first_video[0]]
-
-    for frame in all_frames_first_video[1:]:
-        if frame - current_sequence[-1] <= max_gap:
-            current_sequence.append(frame)
-        else:
-            sequences.append(current_sequence)
-            current_sequence = [frame]
-
-    # Add the last sequence if it exists
-    if current_sequence:
-        sequences.append(current_sequence)
-
-    # Identify possible frames that could be added to sequences later
-    for seq in sequences:
-        if len(seq) == 1:
-            possible_frames.append(seq[0])
+        # Add the last sequence if it's valid
+        if current_sequence:
+            sequence_key = f"sequence {len(sequences)}"
+            if sequence_key not in sequences:
+                sequences[sequence_key] = {}
+            sequences[sequence_key][video] = current_sequence
 
     pprint('Sequences:')
     pprint(sequences)
-    pprint('Possible frames:')
-    pprint(possible_frames)
-
     return sequences
+
+
+
 
 
 def find_possible_sequences(conflicting_frame_hashes, max_gap=1):
@@ -116,8 +116,8 @@ def find_possible_sequences(conflicting_frame_hashes, max_gap=1):
     pprint(frame_matches)
 
     video_names = extract_video_names(conflicting_frame_hashes)
-    sequences = identify_continuous_sequences(conflicting_frame_hashes, video_names, max_gap)
-    possible_sequences = reorganize_sequences(sequences)
+    sequences = identify_continuous_sequences(conflicting_frame_hashes, max_gap)
+    # possible_sequences = reorganize_sequences(sequences)
 
     # pprint('possible_sequences:')
     # pprint(possible_sequences)
