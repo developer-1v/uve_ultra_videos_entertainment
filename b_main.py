@@ -1,4 +1,4 @@
-import os
+import os, time
 from print_tricks import pt
 from rich import print as rprint
 
@@ -17,10 +17,13 @@ def debug_print(video_hashes, conflicting_frame_hashes, possible_conflicting_seq
             print(conflicting_frame_hashes, file=log_file)
             print('possible conflicting sequences:\n\n', file=log_file)
             print(possible_conflicting_sequences, file=log_file)
+            
     else:
         rprint('video hashes:\n\n', video_hashes)
         rprint('conflicting frame hashes:\n\n', conflicting_frame_hashes)
         rprint('possible conflicting sequences:\n\n', possible_conflicting_sequences)
+    
+    pt.ex()
 
 def process_series(series, test_full_vids=False, db_path='hashes.db'):
     frame_hashes = {}
@@ -33,6 +36,15 @@ def process_series(series, test_full_vids=False, db_path='hashes.db'):
             
             pt(video_paths)
             use_disk = True
+            
+            ## TEST
+            ## if database already exists, delete it. 
+            if os.path.exists(db_path):
+                os.remove(db_path)
+                time.sleep(0.1)
+                pt('deleted database!')
+                
+            ## process videos
             video_hashes, conflicting_frame_hashes = process_videos(
                 frame_hashes, conflicting_frame_hashes, video_paths, use_disk=use_disk, db_path=db_path)
             
@@ -42,7 +54,7 @@ def process_series(series, test_full_vids=False, db_path='hashes.db'):
             
             debug_print(video_hashes, conflicting_frame_hashes, possible_conflicting_sequences, test_full_vids)
             
-            compile_videos_from_dict(possible_conflicting_sequences, video_paths, output_path='test_compiled_video.mp4', per_sequence=False)
+            compile_videos_from_dict(possible_conflicting_sequences, video_paths, per_sequence=False)
             
             pt.t()
 
@@ -55,7 +67,7 @@ if __name__ == "__main__":
     else:
         series_path = os.path.join(os.getcwd(), 'videos_for_testing', 'compiled_tiny_videos_for_testing', 'compiled')
         db_path = 'hashes_tiny_vids.db'
-    
+        
     series = find_seasons(series_path)
     pt(series)
     print_series(series)

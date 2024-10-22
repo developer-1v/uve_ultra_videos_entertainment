@@ -59,7 +59,7 @@ This file is organized by:
     have any benefit to catching these. 
 
 
-- Ending Flashbacks on opening of next video: (DELETE):
+- Ending Flashbacks on opening of next video: (DELETE all but first):
     (Something like: The last minute(s) of the last video are either shown in their entirety
     at the beginning of the next video, or some parts of it are shown again. 
     We want to get rid of these because we literally just saw that scene using UVE and can ignore it
@@ -69,6 +69,13 @@ This file is organized by:
             (ignoring other sequences that have been deleted like the closing scene)
         - start within the first __ 5m (user-defined) of the current video. 
         - Shown up only 2 within the last __ 3 episodes (user-defined).
+
+- Multi Ending Flashbacks (DELETE all but first):
+    - Same as above, but the flashbacks are often bits and pieces but the same sequence of frames
+    can show up more than once in the second video. For example, they show up before the opening, 
+    then show up again after the opening.
+    - I must setup test videos to handle this, because I could see me accidentally overlooking one
+    of these instances. 
 
 
 # RULE categories:
@@ -116,7 +123,7 @@ equence_within_first_5_minutes_of_current_video = False
 
 # Updated logic with realistic variables and marking actions
 if sequence_showed_up_in_last_3_episodes:
-    if sequence_duration_seconds < 15:
+    if sequence_duration_seconds < (minimal_opening_scene_seconds or minimal_closing_scene_seconds):
         mark_possible_commercial_break()
             if sequence_shows_up_in_every_episode_so_far:
                 mark_commercial_break()

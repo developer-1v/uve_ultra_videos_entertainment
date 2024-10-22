@@ -35,30 +35,37 @@ def reorganize_sequences(sequences):
     return possible_sequences
 
 def identify_continuous_sequences(conflicting_frame_hashes, video_names, max_gap=1):
+    def can_extend_sequence(current_sequence, frames, max_gap):
+        return all(
+            not current_sequence[video] or (frames[video] and min(frames[video]) <= max(current_sequence[video]) + max_gap)
+            for video in video_names
+        )
+
+    def extend_sequence(current_sequence, frames):
+        for video in video_names:
+            current_sequence[video].extend(frames[video])
+
+    def finalize_sequence(current_sequence):
+        for video in video_names:
+            current_sequence[video] = sorted(set(current_sequence[video]))
+
     sequences = []
     current_sequence = {video: [] for video in video_names}
 
     for index, (key, value) in enumerate(conflicting_frame_hashes.items()):
         frames = {video: value.get(video, []) for video in video_names}
 
-        if all(
-            not current_sequence[video] or (frames[video] and min(frames[video]) <= max(current_sequence[video]) + max_gap + 1)
-            for video in video_names
-        ):
-            for video in video_names:
-                current_sequence[video].extend(frames[video])
+        if can_extend_sequence(current_sequence, frames, max_gap):
+            extend_sequence(current_sequence, frames)
         else:
             if any(current_sequence[video] for video in video_names):
-                for video in video_names:
-                    current_sequence[video] = sorted(set(current_sequence[video]))
+                finalize_sequence(current_sequence)
                 sequences.append(current_sequence.copy())
             current_sequence = {video: [] for video in video_names}  # Reset current_sequence
-            for video in video_names:
-                current_sequence[video].extend(frames[video])
+            extend_sequence(current_sequence, frames)
 
     if any(current_sequence[video] for video in video_names):
-        for video in video_names:
-            current_sequence[video] = sorted(set(current_sequence[video]))
+        finalize_sequence(current_sequence)
         sequences.append(current_sequence)
 
     # Ensure sequences are in the order of video_names
@@ -68,6 +75,8 @@ def identify_continuous_sequences(conflicting_frame_hashes, video_names, max_gap
         ordered_sequences.append(ordered_seq)
 
     return ordered_sequences
+
+
 
 def find_possible_sequences(conflicting_frame_hashes, max_gap=1):
     frame_matches = get_frame_matches(conflicting_frame_hashes)

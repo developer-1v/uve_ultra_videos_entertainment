@@ -21,7 +21,7 @@ def extract_and_save_subclip(video_path, start_frame, end_frame, sequence_index)
                 
                 # Define the output path using a valid file name
                 video_name = os.path.basename(video_path)
-                output_path = f"clip_{sequence_index + 1:02d}({start_frame}_{end_frame})_{video_name}"
+                output_path = f"clip_{sequence_index}({start_frame}_{end_frame})_{video_name}"
                 
                 # Write the subclip to a file
                 subclip.write_videofile(output_path, codec='libx264', audio_codec='aac')
@@ -43,7 +43,7 @@ def convert_dict_to_frame_ranges(video_dict):
                 print(f"Error: Frames for {video_name} in {sequence} are not sequential.")
     return frame_ranges
 
-def compile_videos_from_dict(video_dict, original_video_paths, output_path='test_compiled_video.mp4', per_sequence=False):
+def compile_videos_from_dict(video_dict, original_video_paths, per_sequence=False):
     for sequence_index, (sequence_name, videos) in enumerate(video_dict.items()):
         for video_name, frames in videos.items():
             # Check if frames list is not empty

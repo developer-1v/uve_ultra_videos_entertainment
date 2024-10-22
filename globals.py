@@ -16,6 +16,14 @@ XXHASH_BYTES = XXHASH().digest_size
 print(f"Bytes used by xxhash: {XXHASH_BYTES}")
 
 
+tiny_clip_vars = {
+    'minimal_opening_scene_seconds': 0.5,
+    'minimal_closing_scene_seconds': 0.5,
+    'repeated_episodes': 3,
+    'last_video': None,
+}
+
+
 # HASH_METHODS = {
 #     # 'imagehash_average_hash': lambda frame: str(average_hash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
 #     'imagehash_phash': lambda frame: str(phash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
