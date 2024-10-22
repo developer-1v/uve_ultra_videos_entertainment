@@ -1,4 +1,10 @@
-def merge_and_extract_extras(data):
+from rich import print as rprint
+
+
+
+
+
+def get_merged_data(data):
     merged = {}
     extras = {key: [] for key in data}
     sequence_count = 0
@@ -29,21 +35,29 @@ def merge_and_extract_extras(data):
                 if f"sequence {sequence_count}" not in merged:
                     merged[f"sequence {sequence_count}"] = {}
                 merged[f"sequence {sequence_count}"][key] = current_sequence[key]
-            elif current_sequence[key]:
+            else:
+                # Move single-frame data to extras
                 extras[key].extend(current_sequence[key])
 
-        if any(len(current_sequence[key]) > 1 for key in current_sequence):
+        # Check if the sequence has more than one key before incrementing sequence_count
+        if len(merged.get(f"sequence {sequence_count}", {})) > 1:
             sequence_count += 1
+        else:
+            # Remove the sequence if it does not span multiple keys
+            merged.pop(f"sequence {sequence_count}", None)
 
     return merged, extras
 
-# Example usage
-data = {
-    'a': [[6], [7, 8, 9], [10, 11, 12, 13, 14, 15], [16, 17, 18], [23], [34], [97, 98, 99]],
-    'b': [[47], [48, 49, 50], [51, 52, 53, 54, 55, 56, 57, 58], [59], [4], [35], [88, 89, 90]],
-    'c': [[25], [26, 27, 28], [29, 30, 31, 32, 33, 34], [35, 36, 37], [42], [53], [76, 77, 78]]
+
+
+
+input = {
+
+    'a': [[6], [7, 8, 9], [10, 11, 12, 13, 14, 15], [16, 17, 18], [23], [34], [24, 25], [35, 36], [26, 27, 28, 29], [37, 38, 39], [91], [95]],
+    'b': [[47], [48, 49, 50], [51, 52, 53, 54, 55, 56, 57, 58], [59], [4], [35], [5, 6], [36, 37], [7, 8, 9], [38, 39, 40, 41], [92], [96], [16], [17], [18], [19], [20], [21], [22, 23], [24], [25], [26], [28, 29], [27], [30], [46]],
+    'c': [[25], [26, 27, 28], [29, 30, 31, 32, 33, 34], [35, 36, 37], [42], [53], [43, 44], [54, 55], [45, 46], [48], [56, 57], [59], [93], [98], [4], [5], [6], [7], [8], [9], [10, 11], [12], [13], [14], [16, 17], [15], [18], [24]] 
 }
 
-merged, extras = merge_and_extract_extras(data)
-print("Merged:", merged)
-print("Extras:", extras)
+merged, extras = get_merged_data(input)
+rprint("Merged:", merged)
+rprint("Extras:", extras)

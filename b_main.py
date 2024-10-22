@@ -6,6 +6,8 @@ from b_find_seasons import find_seasons, print_series
 from b_process_videos import process_videos
 import b_calculate_sequences
 from b_compile_vids import compile_videos_from_dict
+from b_sort_data import sort_data
+from b_merge_data import get_merged_data
 from utilities import add_to_hashes_db
 
 def debug_print(video_hashes, conflicting_frame_hashes, possible_conflicting_sequences, test_full_vids=False):
@@ -48,13 +50,20 @@ def process_series(series, test_full_vids=False, db_path='hashes.db'):
             video_hashes, conflicting_frame_hashes = process_videos(
                 frame_hashes, conflicting_frame_hashes, video_paths, use_disk=use_disk, db_path=db_path)
             
-            possible_conflicting_sequences, extras = b_calculate_sequences.find_possible_sequences(conflicting_frame_hashes)
+            print('conflicting_frame_hashes:')
+            rprint(conflicting_frame_hashes)
             
-            add_to_hashes_db(possible_conflicting_sequences, db_path)
+            sorted_data = sort_data(conflicting_frame_hashes)
+            merged, extras = get_merged_data(sorted_data)
             
-            debug_print(video_hashes, conflicting_frame_hashes, possible_conflicting_sequences, test_full_vids)
             
-            compile_videos_from_dict(possible_conflicting_sequences, video_paths, per_sequence=False)
+            # possible_conflicting_sequences, extras = b_calculate_sequences.find_possible_sequences(conflicting_frame_hashes)
+            
+            # add_to_hashes_db(possible_conflicting_sequences, db_path)
+            
+            # debug_print(video_hashes, conflicting_frame_hashes, possible_conflicting_sequences, test_full_vids)
+            
+            # compile_videos_from_dict(possible_conflicting_sequences, video_paths, per_sequence=False)
             
             pt.t()
 

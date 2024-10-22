@@ -25,8 +25,8 @@ tiny_clip_vars = {
 
 
 # HASH_METHODS = {
-#     # 'imagehash_average_hash': lambda frame: str(average_hash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
-#     'imagehash_phash': lambda frame: str(phash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
+    # 'imagehash_average_hash': lambda frame: str(average_hash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
+    # 'imagehash_phash': lambda frame: str(phash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
 #     # 'imagehash_phash_simple': lambda frame: str(phash_simple(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
 #     # 'imagehash_dhash': lambda frame: str(dhash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
 #     # 'imagehash_dhash_vertical': lambda frame: str(dhash_vertical(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),

@@ -7,15 +7,6 @@ from print_tricks import pt
 
 
 
-def find_possible_sequences(conflicting_frame_hashes, max_gap=1):
-    
-    sorted_data = sort_data(conflicting_frame_hashes)
-    merged, extras = merge_and_extract_extras(sorted_data)
-    pt(sorted_data)
-    pt(merged)
-    pt(extras)
-    
-    return merged, extras
 
 
 
@@ -47,6 +38,33 @@ if __name__ == "__main__":
         '768925cd4dc3780c': {'compiled_tiny_original_15b.mkv': [46], 'compiled_tiny_original_15c.mkv': [24]}
     }
     
+
+
+    ## fix this below:
+    Desired_output_1 = {
+        'sequence 0': {
+            'compiled_tiny_original_15a.mkv': [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+            'compiled_tiny_original_15b.mkv': [47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
+            'compiled_tiny_original_15c.mkv': [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37]
+        },
+        'sequence 1': {
+            'compiled_tiny_original_15a.mkv': [23, 24, 25, 26, 27, 28, 29, 30],
+            'compiled_tiny_original_15b.mkv': [5, 6, 7, 8, 9, 10, 11, 12],
+            'compiled_tiny_original_15c.mkv': [43, 44, 45, 46, 47, 48, 49, 50]
+        },
+        'sequence 2': {
+            'compiled_tiny_original_15a.mkv': [35, 36, 37, 38, 39, 40, 41],
+            'compiled_tiny_original_15b.mkv': [38, 39, 40, 41, 42],
+            'compiled_tiny_original_15c.mkv': [45, 46, 48, 56, 57, 59]
+        }
+    }
+
+    Desired_output_2 = {
+        'compiled_tiny_original_15a.mkv': [51, 62],
+        'compiled_tiny_original_15b.mkv': [54, 65],
+        'compiled_tiny_original_15c.mkv': [57, 68],
+    }
+
     max_gap = 1  ## Num of frames allowed between discovered matching frames, to be included in the same sequence
     merged, extras = find_possible_sequences(conflicting_frame_hashes, max_gap)
     rprint('conflicting_frame_hashes:')
@@ -56,31 +74,5 @@ if __name__ == "__main__":
     rprint('extras:')
     rprint(extras)
 
-
-
-## fix this below:
-possible_sequences = {
-    'sequence 0': {
-        'compiled_tiny_original_15a.mkv': [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]},
-        'compiled_tiny_original_15b.mkv': [47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59], 
-        'compiled_tiny_original_15c.mkv': [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37]
-    },
-    'sequence 1': {
-        'compiled_tiny_original_15a.mkv': [23, 24, 25, 26, 27, 28, 29, 30],
-        'compiled_tiny_original_15b.mkv': [5, 6, 7, 8, 9, 10, 11, 12],
-        'compiled_tiny_original_15c.mkv': [43, 44, 45, 46, 47, 48, 49, 50],
-    },
-    'sequence 2': {
-        'compiled_tiny_original_15a.mkv': [35, 36, 37, 38, 39, 40, 41],
-        'compiled_tiny_original_15b.mkv': [38, 39, 40, 41, 42],
-        'compiled_tiny_original_15c.mkv': [45, 46, 48, 56, 57, 59],
-    },
-}
-
-Extras = {
-    'compiled_tiny_original_15a.mkv': [51, 62],
-    'compiled_tiny_original_15b.mkv': [54, 65],
-    'compiled_tiny_original_15c.mkv': [57, 68],
-}
-
-
+    print(Desired_output_1 == merged)
+    print(Desired_output_2 == extras)
