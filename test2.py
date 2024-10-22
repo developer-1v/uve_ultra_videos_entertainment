@@ -1,33 +1,36 @@
 from rich import print as pprint
+from print_tricks import pt
 
-
-def merge_frames(input_dict):
-    from itertools import chain
-
-    # Initialize the output and extras dictionaries
-    output = {'sequence 0': {'a': [], 'b': [], 'c': []}}
+def merge_frames(input_data):
     extras = {'a': [], 'b': [], 'c': []}
-
-    # Flatten the input dictionary values and sort them
-    for key in ['a', 'b', 'c']:
-        all_values = sorted(chain.from_iterable(d[key] for d in input_dict.values()))
-        
-        # Initialize the first sequence
-        current_sequence = output['sequence 0'][key]
-        
-        # Iterate over sorted values to separate into sequences
-        for i, value in enumerate(all_values):
-            if i == 0 or value == all_values[i - 1] + 1:
-                current_sequence.append(value)
-            else:
-                extras[key].append(value)
-
-    # Add the second sequence for the remaining values
-    output['sequence 1'] = {key: extras[key] for key in ['a', 'b', 'c']}
-    extras = {key: [] for key in ['a', 'b', 'c']}
-
-    return output, extras
-
+    
+    # Collect all sequences
+    sequences = []
+    for key in input_data:
+        sequences.append((input_data[key]['a'], input_data[key]['b'], input_data[key]['c']))
+    
+    # Sort sequences by the first element of 'a' to maintain order
+    sequences.sort(key=lambda x: x[0][0] if x[0] else float('inf'))
+    
+    # Find extras
+    for a_seq, b_seq, c_seq in sequences:
+        for sub_key, seq in zip(['a', 'b', 'c'], [a_seq, b_seq, c_seq]):
+            last_num = None
+            sequence = []
+            
+            for num in seq:
+                if last_num is None or num == last_num + 1:
+                    sequence.append(num)
+                else:
+                    extras[sub_key].extend(sequence)
+                    sequence = [num]
+                last_num = num
+            
+            # Add remaining sequence to extras if not consecutive
+            if sequence:
+                extras[sub_key].extend(sequence)
+    
+    return extras
 
 
 if __name__ == '__main__':
@@ -59,9 +62,9 @@ if __name__ == '__main__':
         'c': [42, 53],
     }
     
-    output, extras = merge_frames(input)
-    # output = separate_into_sequences(output)
-    print(output == desired_output)
-    print(extras == desired_extras)
-    pprint(output)
-    pprint(extras)
+    merged = merge_frames(input)
+    # merged = separate_into_sequences(merged)
+    print(merged == desired_output)
+    # print(extras == desired_extras)
+    pprint(merged)
+    # pprint(extras)
