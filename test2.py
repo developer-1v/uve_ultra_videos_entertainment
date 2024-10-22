@@ -10,24 +10,17 @@ def reorganize_frames(input_data):
     # Initialize the first sequence
     output[f'sequence {sequence_counter}'] = {key: [] for key in next(iter(input_data.values()))}
     
-    previous_clip_number = None
-    
     for clip, values in input_data.items():
-        clip_number = int(clip.split()[1])
-        
         if clip == f'clip {len(input_data) - 1}':
             extras = values
             continue
         
-        # Check for gaps greater than 1
-        if previous_clip_number is not None and clip_number - previous_clip_number > 1:
+        if all(not lst for lst in values.values()):
             sequence_counter += 1
             output[f'sequence {sequence_counter}'] = {key: [] for key in values}
         
         for key, lst in values.items():
             output[f'sequence {sequence_counter}'][key].extend(lst)
-        
-        previous_clip_number = clip_number
     
     # Remove empty sequences
     output = {k: v for k, v in output.items() if any(v.values())}
@@ -69,6 +62,7 @@ if __name__ == '__main__':
     }
     
     output, extras = reorganize_frames(input)
+    output = separate_into_sequences(output)
     print(output == desired_output)
     print(extras == desired_extras)
     pprint(output)
