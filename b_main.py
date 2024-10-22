@@ -48,7 +48,7 @@ def process_series(series, test_full_vids=False, db_path='hashes.db'):
             video_hashes, conflicting_frame_hashes = process_videos(
                 frame_hashes, conflicting_frame_hashes, video_paths, use_disk=use_disk, db_path=db_path)
             
-            possible_conflicting_sequences = b_calculate_sequences.find_possible_sequences(conflicting_frame_hashes)
+            possible_conflicting_sequences, extras = b_calculate_sequences.find_possible_sequences(conflicting_frame_hashes)
             
             add_to_hashes_db(possible_conflicting_sequences, db_path)
             

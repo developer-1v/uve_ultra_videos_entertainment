@@ -2,127 +2,105 @@ from rich.pretty import pprint
 from rich import print as rprint
 from print_tricks import pt
 
-def get_frame_matches(conflicting_frame_hashes):
-    frame_matches = {}
-    for index, (key, value) in enumerate(conflicting_frame_hashes.items()):
-        frame_matches[index] = value
-    return frame_matches
 
 
-def extract_video_names(conflicting_frame_hashes):
-    video_names = set()
-    for value in conflicting_frame_hashes.values():
-        video_names.update(value.keys())
-    return video_names
 
-def collect_video_sequences(frame_matches, video_names):
-    video_sequences = {video: [] for video in video_names}
-    for video in video_sequences.keys():
-        all_frames = []
-        for index in frame_matches:
-            frames = frame_matches[index].get(video, [])
-            all_frames.extend(frames)
-        all_frames = sorted(set(all_frames))
-        video_sequences[video] = all_frames
-    return video_sequences
-
-
-def reorganize_sequences(sequences):
-    possible_sequences = {}
-    for i, seq in enumerate(sequences):
-        sequence_key = f"sequence {i}"
-        possible_sequences[sequence_key] = seq
-    return possible_sequences
-
-def remove_non_continuous_sequences(conflicting_frame_hashes, video_names, max_gap=1):
-    for video in video_names:
-        for key, frames in conflicting_frame_hashes.items():
-            if video in frames:
-                frame_list = frames[video]
-                # Sort the frames to ensure they are in order
-                frame_list.sort()
-                # Check for gaps
-                continuous_frames = []
-                last_frame = frame_list[0]
-                current_sequence = [last_frame]
-
-                for frame in frame_list[1:]:
-                    if frame - last_frame <= max_gap:
-                        current_sequence.append(frame)
-                    else:
-                        if len(current_sequence) > 1:
-                            continuous_frames.extend(current_sequence)
-                        current_sequence = [frame]
-                    last_frame = frame
-
-                # Add the last sequence if it's valid
-                if len(current_sequence) > 1:
-                    continuous_frames.extend(current_sequence)
-
-                # Update the frames for the video
-                frames[video] = continuous_frames
-
-    # Remove entries with no frames
-    keys_to_remove = [key for key, frames in conflicting_frame_hashes.items() if not any(frames.values())]
-    for key in keys_to_remove:
-        del conflicting_frame_hashes[key]
-        
-    return conflicting_frame_hashes
+def sort_data(input_data):
+    pt(input_data)
+    # Initialize sorted_data with keys from input_data
+    sorted_data = {key: [] for key in input_data[next(iter(input_data))]}
     
-def identify_continuous_sequences(conflicting_frame_hashes, max_gap=1):
-    sequences = {}
-    video_names = extract_video_names(conflicting_frame_hashes)
-
-    for video in video_names:
-        all_frames = []
-        for frames in conflicting_frame_hashes.values():
-            if video in frames:
-                all_frames.extend(frames[video])
-        
-        all_frames = sorted(set(all_frames))
-        current_sequence = []
-        last_frame = None
-
-        for frame in all_frames:
-            if last_frame is None or frame - last_frame <= max_gap:
-                current_sequence.append(frame)
-            else:
-                if current_sequence:
-                    sequence_key = f"sequence {len(sequences)}"
-                    if sequence_key not in sequences:
-                        sequences[sequence_key] = {}
-                    sequences[sequence_key][video] = current_sequence
-                current_sequence = [frame]
-            last_frame = frame
-
-        # Add the last sequence if it's valid
-        if current_sequence:
-            sequence_key = f"sequence {len(sequences)}"
-            if sequence_key not in sequences:
-                sequences[sequence_key] = {}
-            sequences[sequence_key][video] = current_sequence
-
-    pprint('Sequences:')
-    pprint(sequences)
-    return sequences
+    # Collect all frames
+    frames = []
+    for key in input_data:
+        frames.append(tuple(input_data[key][sub_key] for sub_key in input_data[key]))
+    
+    pt(frames)
+    # Sort frames by the first element of the first key to maintain order
+    frames.sort(key=lambda x: x[0][0] if x[0] else float('inf'))
+    pt(frames)
+    
+    # Find sorted data
+    for frame in frames:
+        for sub_key, seq in zip(sorted_data.keys(), frame):
+            sequence = []
+            last_num = None
+            
+            for num in seq:
+                if last_num is not None and num != last_num + 1:
+                    sorted_data[sub_key].append(sequence)
+                    sequence = []
+                sequence.append(num)
+                last_num = num
+            
+            # Append the last sequence
+            if sequence:
+                sorted_data[sub_key].append(sequence)
+    
+    return sorted_data
 
 
+def merge_and_extract_extras(data):
+    merged = {}
+    extras = {key: [] for key in data}
+    sequence_count = 0
+
+    # Initialize pointers for each key
+    pointers = {key: 0 for key in data}
+    max_length = max(len(data[key]) for key in data)
+
+    while any(pointers[key] < len(data[key]) for key in data):
+        current_sequence = {key: [] for key in data}
+        min_start = None
+
+        # Determine the minimum start value for the next sequence
+        for key in data:
+            if pointers[key] < len(data[key]):
+                if min_start is None or data[key][pointers[key]][0] < min_start:
+                    min_start = data[key][pointers[key]][0]
+
+        # Build sequences starting from the minimum start value
+        for key in data:
+            while pointers[key] < len(data[key]) and (not current_sequence[key] or data[key][pointers[key]][0] == current_sequence[key][-1] + 1):
+                current_sequence[key].extend(data[key][pointers[key]])
+                pointers[key] += 1
+
+        # Store the sequences or move to extras if only one frame
+        for key in current_sequence:
+            if len(current_sequence[key]) > 1:
+                if f"sequence {sequence_count}" not in merged:
+                    merged[f"sequence {sequence_count}"] = {}
+                merged[f"sequence {sequence_count}"][key] = current_sequence[key]
+            elif current_sequence[key]:
+                extras[key].extend(current_sequence[key])
+
+        if any(len(current_sequence[key]) > 1 for key in current_sequence):
+            sequence_count += 1
+
+    return merged, extras
 
 
 
 def find_possible_sequences(conflicting_frame_hashes, max_gap=1):
-    frame_matches = get_frame_matches(conflicting_frame_hashes)
-    pprint('frame_matches:')
-    pprint(frame_matches)
+    
+    sorted_data = sort_data(conflicting_frame_hashes)
+    merged, extras = merge_and_extract_extras(sorted_data)
+    pt(sorted_data)
+    pt(merged)
+    pt(extras)
+    # frame_matches = get_frame_matches(conflicting_frame_hashes)
+    # pprint('frame_matches:')
+    # pprint(frame_matches)
 
-    video_names = extract_video_names(conflicting_frame_hashes)
-    sequences = identify_continuous_sequences(conflicting_frame_hashes, max_gap)
+    # video_names = extract_video_names(conflicting_frame_hashes)
+    # sequences = identify_continuous_sequences(conflicting_frame_hashes, max_gap)
     # possible_sequences = reorganize_sequences(sequences)
 
     # pprint('possible_sequences:')
     # pprint(possible_sequences)
-    pt()
-    return possible_sequences
+    # pt()
+    return merged, extras
+    
 
 
 if __name__ == "__main__":
@@ -148,35 +126,37 @@ if __name__ == "__main__":
 
 
     conflicting_frame_hashes = {
-    '7619a4cc4dc3788c': {'compiled_tiny_original_15a.mkv': [6], 'compiled_tiny_original_15b.mkv': [47], 'compiled_tiny_original_15c.mkv': [25]},
-    '7691644c4dcb788c': {'compiled_tiny_original_15a.mkv': [7, 8, 9], 'compiled_tiny_original_15b.mkv': [48, 49, 50], 'compiled_tiny_original_15c.mkv': [26, 27, 28]},
-    '7691654c4dcb788c': {'compiled_tiny_original_15a.mkv': [10, 11, 12, 13, 14, 15], 'compiled_tiny_original_15b.mkv': [51, 52, 53, 54, 55, 56, 57, 58], 'compiled_tiny_original_15c.mkv': [29, 30, 31, 32, 33, 34]},
-    '7691654c4dcb780c': {'compiled_tiny_original_15a.mkv': [16, 17, 18], 'compiled_tiny_original_15b.mkv': [59], 'compiled_tiny_original_15c.mkv': [35, 36, 37]},
-    '24010080808582cb': {'compiled_tiny_original_15a.mkv': [23, 34], 'compiled_tiny_original_15b.mkv': [4, 35], 'compiled_tiny_original_15c.mkv': [42, 53]},
-    '24010000808582cb': {'compiled_tiny_original_15a.mkv': [24, 25, 35, 36], 'compiled_tiny_original_15b.mkv': [5, 6, 36, 37], 'compiled_tiny_original_15c.mkv': [43, 44, 54, 55]},
-    '24000000808582cb': {'compiled_tiny_original_15a.mkv': [26, 27, 28, 29, 37, 38, 39], 'compiled_tiny_original_15b.mkv': [7, 8, 9, 38, 39, 40, 41], 'compiled_tiny_original_15c.mkv': [45, 46, 48, 56, 57, 59]},
-    '24000000808582ca': {'compiled_tiny_original_15a.mkv': [30, 40, 41], 'compiled_tiny_original_15b.mkv': [10, 11, 42], 'compiled_tiny_original_15c.mkv': [49, 60]},
-    '0000003010000000': {'compiled_tiny_original_15b.mkv': [16], 'compiled_tiny_original_15c.mkv': [4]},
-    '0000409090848682': {'compiled_tiny_original_15b.mkv': [17], 'compiled_tiny_original_15c.mkv': [5]},
-    '0040c09090848686': {'compiled_tiny_original_15b.mkv': [18], 'compiled_tiny_original_15c.mkv': [6]},
-    '4040c09094848686': {'compiled_tiny_original_15b.mkv': [19], 'compiled_tiny_original_15c.mkv': [7]},
-    '4004c49094868686': {'compiled_tiny_original_15b.mkv': [20], 'compiled_tiny_original_15c.mkv': [8]},
-    '8084c49494868686': {'compiled_tiny_original_15b.mkv': [21], 'compiled_tiny_original_15c.mkv': [9]},
-    'c8d4c4d49486c686': {'compiled_tiny_original_15b.mkv': [22, 23], 'compiled_tiny_original_15c.mkv': [10, 11]},
-    'd9d1c5d49486c696': {'compiled_tiny_original_15b.mkv': [24], 'compiled_tiny_original_15c.mkv': [12]},
-    'd9d5c5d49486c696': {'compiled_tiny_original_15b.mkv': [25], 'compiled_tiny_original_15c.mkv': [13]},
-    'd8d5c5d49486c696': {'compiled_tiny_original_15b.mkv': [26, 28, 29], 'compiled_tiny_original_15c.mkv': [14, 16, 17]},
-    'd8d5cdd49486c696': {'compiled_tiny_original_15b.mkv': [27], 'compiled_tiny_original_15c.mkv': [15]},
-    '1119999494849696': {'compiled_tiny_original_15b.mkv': [30], 'compiled_tiny_original_15c.mkv': [18]},
-    '768925cd4dc3780c': {'compiled_tiny_original_15b.mkv': [46], 'compiled_tiny_original_15c.mkv': [24]}
+        '7619a4cc4dc3788c': {'compiled_tiny_original_15a.mkv': [6], 'compiled_tiny_original_15b.mkv': [47], 'compiled_tiny_original_15c.mkv': [25]},
+        '7691644c4dcb788c': {'compiled_tiny_original_15a.mkv': [7, 8, 9], 'compiled_tiny_original_15b.mkv': [48, 49, 50], 'compiled_tiny_original_15c.mkv': [26, 27, 28]},
+        '7691654c4dcb788c': {'compiled_tiny_original_15a.mkv': [10, 11, 12, 13, 14, 15], 'compiled_tiny_original_15b.mkv': [51, 52, 53, 54, 55, 56, 57, 58], 'compiled_tiny_original_15c.mkv': [29, 30, 31, 32, 33, 34]},
+        '7691654c4dcb780c': {'compiled_tiny_original_15a.mkv': [16, 17, 18], 'compiled_tiny_original_15b.mkv': [59], 'compiled_tiny_original_15c.mkv': [35, 36, 37]},
+        '24010080808582cb': {'compiled_tiny_original_15a.mkv': [23, 34], 'compiled_tiny_original_15b.mkv': [4, 35], 'compiled_tiny_original_15c.mkv': [42, 53]},
+        '24010000808582cb': {'compiled_tiny_original_15a.mkv': [24, 25, 35, 36], 'compiled_tiny_original_15b.mkv': [5, 6, 36, 37], 'compiled_tiny_original_15c.mkv': [43, 44, 54, 55]},
+        '24000000808582cb': {'compiled_tiny_original_15a.mkv': [26, 27, 28, 29, 37, 38, 39], 'compiled_tiny_original_15b.mkv': [7, 8, 9, 38, 39, 40, 41], 'compiled_tiny_original_15c.mkv': [45, 46, 48, 56, 57, 59]},
+        '24000000808582ca': {'compiled_tiny_original_15a.mkv': [30, 40, 41], 'compiled_tiny_original_15b.mkv': [10, 11, 42], 'compiled_tiny_original_15c.mkv': [49, 60]},
+        '0000003010000000': {'compiled_tiny_original_15b.mkv': [16], 'compiled_tiny_original_15c.mkv': [4]},
+        '0000409090848682': {'compiled_tiny_original_15b.mkv': [17], 'compiled_tiny_original_15c.mkv': [5]},
+        '0040c09090848686': {'compiled_tiny_original_15b.mkv': [18], 'compiled_tiny_original_15c.mkv': [6]},
+        '4040c09094848686': {'compiled_tiny_original_15b.mkv': [19], 'compiled_tiny_original_15c.mkv': [7]},
+        '4004c49094868686': {'compiled_tiny_original_15b.mkv': [20], 'compiled_tiny_original_15c.mkv': [8]},
+        '8084c49494868686': {'compiled_tiny_original_15b.mkv': [21], 'compiled_tiny_original_15c.mkv': [9]},
+        'c8d4c4d49486c686': {'compiled_tiny_original_15b.mkv': [22, 23], 'compiled_tiny_original_15c.mkv': [10, 11]},
+        'd9d1c5d49486c696': {'compiled_tiny_original_15b.mkv': [24], 'compiled_tiny_original_15c.mkv': [12]},
+        'd9d5c5d49486c696': {'compiled_tiny_original_15b.mkv': [25], 'compiled_tiny_original_15c.mkv': [13]},
+        'd8d5c5d49486c696': {'compiled_tiny_original_15b.mkv': [26, 28, 29], 'compiled_tiny_original_15c.mkv': [14, 16, 17]},
+        'd8d5cdd49486c696': {'compiled_tiny_original_15b.mkv': [27], 'compiled_tiny_original_15c.mkv': [15]},
+        '1119999494849696': {'compiled_tiny_original_15b.mkv': [30], 'compiled_tiny_original_15c.mkv': [18]},
+        '768925cd4dc3780c': {'compiled_tiny_original_15b.mkv': [46], 'compiled_tiny_original_15c.mkv': [24]}
     }
     
     max_gap = 1  ## Num of frames allowed between discovered matching frames, to be included in the same sequence
-    possible_sequences = find_possible_sequences(conflicting_frame_hashes, max_gap)
+    merged, extras = find_possible_sequences(conflicting_frame_hashes, max_gap)
     rprint('conflicting_frame_hashes:')
     rprint(conflicting_frame_hashes)
-    rprint('possible_sequences:')
-    rprint(possible_sequences)
+    rprint('merged:')
+    rprint(merged)
+    rprint('extras:')
+    rprint(extras)
 
 
 
