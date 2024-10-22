@@ -35,62 +35,8 @@ def reorganize_sequences(sequences):
     return possible_sequences
 
 def identify_continuous_sequences(conflicting_frame_hashes, video_names, max_gap=1):
-    def can_extend_sequence(current_sequence, frames, max_gap):
-        for video in video_names:
-            if current_sequence[video]:
-                last_frame = max(current_sequence[video])
-                if frames[video] and min(frames[video]) > last_frame + max_gap:
-                    return False
-        return True
+    pass
 
-    def extend_sequence(current_sequence, frames):
-        for video in video_names:
-            if frames[video]:
-                current_sequence[video].extend(frames[video])
-
-    def finalize_sequence(current_sequence):
-        for video in video_names:
-            current_sequence[video] = sorted(set(current_sequence[video]))
-
-    sequences = []
-    current_sequence = {video: [] for video in video_names}
-
-    for index, (key, value) in enumerate(conflicting_frame_hashes.items()):
-        frames = {video: value.get(video, []) for video in video_names}
-
-        if can_extend_sequence(current_sequence, frames, max_gap):
-            extend_sequence(current_sequence, frames)
-        else:
-            if any(current_sequence[video] for video in video_names):
-                finalize_sequence(current_sequence)
-                sequences.append(current_sequence.copy())
-            current_sequence = {video: [] for video in video_names}  # Reset current_sequence
-            extend_sequence(current_sequence, frames)
-
-    if any(current_sequence[video] for video in video_names):
-        finalize_sequence(current_sequence)
-        sequences.append(current_sequence)
-
-    # Merge sequences that can be combined
-    merged_sequences = []
-    for seq in sequences:
-        if not merged_sequences:
-            merged_sequences.append(seq)
-        else:
-            last_seq = merged_sequences[-1]
-            if can_extend_sequence(last_seq, seq, max_gap):
-                extend_sequence(last_seq, seq)
-                finalize_sequence(last_seq)
-            else:
-                merged_sequences.append(seq)
-
-    # Ensure sequences are in the order of video_names
-    ordered_sequences = []
-    for seq in merged_sequences:
-        ordered_seq = {video: seq[video] for video in video_names}
-        ordered_sequences.append(ordered_seq)
-
-    return ordered_sequences
 
 
 def find_possible_sequences(conflicting_frame_hashes, max_gap=1):
@@ -109,24 +55,51 @@ def find_possible_sequences(conflicting_frame_hashes, max_gap=1):
 
 
 if __name__ == "__main__":
-    conflicting_frame_hashes = {
-        '0000003010000000': {'tiny_compiled_15a_normal.mkv': [8], 'tiny_compiled_15b_reverse.mkv': [29]},
-        '0000409090848682': {'tiny_compiled_15a_normal.mkv': [9], 'tiny_compiled_15b_reverse.mkv': [30]},
-        '0040c09090848686': {'tiny_compiled_15a_normal.mkv': [10], 'tiny_compiled_15b_reverse.mkv': [31]},
-        '4040c09094848686': {'tiny_compiled_15a_normal.mkv': [11], 'tiny_compiled_15b_reverse.mkv': [32]},
-        '4004c49094868686': {'tiny_compiled_15a_normal.mkv': [12], 'tiny_compiled_15b_reverse.mkv': [33]},
-        'c8d4c4d49486c686': {'tiny_compiled_15a_normal.mkv': [14, 15], 'tiny_compiled_15b_reverse.mkv': [35, 36]},
-        'd9d1c5d49486c696': {'tiny_compiled_15a_normal.mkv': [16], 'tiny_compiled_15b_reverse.mkv': [37]},
-        'd9d5c5d49486c696': {'tiny_compiled_15a_normal.mkv': [17], 'tiny_compiled_15b_reverse.mkv': [38]},
-        'd8d5c5d49486c696': {'tiny_compiled_15a_normal.mkv': [18, 20, 21], 'tiny_compiled_15b_reverse.mkv': [39, 41, 42]},
-        'd8d5cdd49486c696': {'tiny_compiled_15a_normal.mkv': [19], 'tiny_compiled_15b_reverse.mkv': [40]},
-        '1119999494849696': {'tiny_compiled_15a_normal.mkv': [22], 'tiny_compiled_15b_reverse.mkv': [43]},
-        '7619a4cc4dc3788c': {'tiny_compiled_15a_normal.mkv': [28], 'tiny_compiled_15b_reverse.mkv': [10]},
-        '7691644c4dcb788c': {'tiny_compiled_15a_normal.mkv': [29, 30, 31], 'tiny_compiled_15b_reverse.mkv': [11, 12, 13]},
-        '7691654c4dcb788c': {'tiny_compiled_15a_normal.mkv': [32, 33, 34, 35, 36, 37, 38], 'tiny_compiled_15b_reverse.mkv': [14, 15, 16, 17, 18, 19, 20, 21]},
-        '7691654c4dcb780c': {'tiny_compiled_15a_normal.mkv': [39, 40], 'tiny_compiled_15b_reverse.mkv': [22]}
-    }
+    # conflicting_frame_hashes = {
+    #     '0000003010000000': {'tiny_compiled_15a_normal.mkv': [8], 'tiny_compiled_15b_reverse.mkv': [29]},
+    #     '0000409090848682': {'tiny_compiled_15a_normal.mkv': [9], 'tiny_compiled_15b_reverse.mkv': [30]},
+    #     '0040c09090848686': {'tiny_compiled_15a_normal.mkv': [10], 'tiny_compiled_15b_reverse.mkv': [31]},
+    #     '4040c09094848686': {'tiny_compiled_15a_normal.mkv': [11], 'tiny_compiled_15b_reverse.mkv': [32]},
+    #     '4004c49094868686': {'tiny_compiled_15a_normal.mkv': [12], 'tiny_compiled_15b_reverse.mkv': [33]},
+    #     'c8d4c4d49486c686': {'tiny_compiled_15a_normal.mkv': [14, 15], 'tiny_compiled_15b_reverse.mkv': [35, 36]},
+    #     'd9d1c5d49486c696': {'tiny_compiled_15a_normal.mkv': [16], 'tiny_compiled_15b_reverse.mkv': [37]},
+    #     'd9d5c5d49486c696': {'tiny_compiled_15a_normal.mkv': [17], 'tiny_compiled_15b_reverse.mkv': [38]},
+    #     'd8d5c5d49486c696': {'tiny_compiled_15a_normal.mkv': [18, 20, 21], 'tiny_compiled_15b_reverse.mkv': [39, 41, 42]},
+    #     'd8d5cdd49486c696': {'tiny_compiled_15a_normal.mkv': [19], 'tiny_compiled_15b_reverse.mkv': [40]},
+    #     '1119999494849696': {'tiny_compiled_15a_normal.mkv': [22], 'tiny_compiled_15b_reverse.mkv': [43]},
+    #     '7619a4cc4dc3788c': {'tiny_compiled_15a_normal.mkv': [28], 'tiny_compiled_15b_reverse.mkv': [10]},
+    #     '7691644c4dcb788c': {'tiny_compiled_15a_normal.mkv': [29, 30, 31], 'tiny_compiled_15b_reverse.mkv': [11, 12, 13]},
+    #     '7691654c4dcb788c': {'tiny_compiled_15a_normal.mkv': [32, 33, 34, 35, 36, 37, 38], 'tiny_compiled_15b_reverse.mkv': [14, 15, 16, 17, 18, 19, 20, 21]},
+    #     '7691654c4dcb780c': {'tiny_compiled_15a_normal.mkv': [39, 40], 'tiny_compiled_15b_reverse.mkv': [22]}
+    # }
 
+
+
+
+    conflicting_frame_hashes = {
+    '7619a4cc4dc3788c': {'compiled_tiny_original_15a.mkv': [6], 'compiled_tiny_original_15b.mkv': [47], 'compiled_tiny_original_15c.mkv': [25]},
+    '7691644c4dcb788c': {'compiled_tiny_original_15a.mkv': [7, 8, 9], 'compiled_tiny_original_15b.mkv': [48, 49, 50], 'compiled_tiny_original_15c.mkv': [26, 27, 28]},
+    '7691654c4dcb788c': {'compiled_tiny_original_15a.mkv': [10, 11, 12, 13, 14, 15], 'compiled_tiny_original_15b.mkv': [51, 52, 53, 54, 55, 56, 57, 58], 'compiled_tiny_original_15c.mkv': [29, 30, 31, 32, 33, 34]},
+    '7691654c4dcb780c': {'compiled_tiny_original_15a.mkv': [16, 17, 18], 'compiled_tiny_original_15b.mkv': [59], 'compiled_tiny_original_15c.mkv': [35, 36, 37]},
+    '24010080808582cb': {'compiled_tiny_original_15a.mkv': [23, 34], 'compiled_tiny_original_15b.mkv': [4, 35], 'compiled_tiny_original_15c.mkv': [42, 53]},
+    '24010000808582cb': {'compiled_tiny_original_15a.mkv': [24, 25, 35, 36], 'compiled_tiny_original_15b.mkv': [5, 6, 36, 37], 'compiled_tiny_original_15c.mkv': [43, 44, 54, 55]},
+    '24000000808582cb': {'compiled_tiny_original_15a.mkv': [26, 27, 28, 29, 37, 38, 39], 'compiled_tiny_original_15b.mkv': [7, 8, 9, 38, 39, 40, 41], 'compiled_tiny_original_15c.mkv': [45, 46, 48, 56, 57, 59]},
+    '24000000808582ca': {'compiled_tiny_original_15a.mkv': [30, 40, 41], 'compiled_tiny_original_15b.mkv': [10, 11, 42], 'compiled_tiny_original_15c.mkv': [49, 60]},
+    '0000003010000000': {'compiled_tiny_original_15b.mkv': [16], 'compiled_tiny_original_15c.mkv': [4]},
+    '0000409090848682': {'compiled_tiny_original_15b.mkv': [17], 'compiled_tiny_original_15c.mkv': [5]},
+    '0040c09090848686': {'compiled_tiny_original_15b.mkv': [18], 'compiled_tiny_original_15c.mkv': [6]},
+    '4040c09094848686': {'compiled_tiny_original_15b.mkv': [19], 'compiled_tiny_original_15c.mkv': [7]},
+    '4004c49094868686': {'compiled_tiny_original_15b.mkv': [20], 'compiled_tiny_original_15c.mkv': [8]},
+    '8084c49494868686': {'compiled_tiny_original_15b.mkv': [21], 'compiled_tiny_original_15c.mkv': [9]},
+    'c8d4c4d49486c686': {'compiled_tiny_original_15b.mkv': [22, 23], 'compiled_tiny_original_15c.mkv': [10, 11]},
+    'd9d1c5d49486c696': {'compiled_tiny_original_15b.mkv': [24], 'compiled_tiny_original_15c.mkv': [12]},
+    'd9d5c5d49486c696': {'compiled_tiny_original_15b.mkv': [25], 'compiled_tiny_original_15c.mkv': [13]},
+    'd8d5c5d49486c696': {'compiled_tiny_original_15b.mkv': [26, 28, 29], 'compiled_tiny_original_15c.mkv': [14, 16, 17]},
+    'd8d5cdd49486c696': {'compiled_tiny_original_15b.mkv': [27], 'compiled_tiny_original_15c.mkv': [15]},
+    '1119999494849696': {'compiled_tiny_original_15b.mkv': [30], 'compiled_tiny_original_15c.mkv': [18]},
+    '768925cd4dc3780c': {'compiled_tiny_original_15b.mkv': [46], 'compiled_tiny_original_15c.mkv': [24]}
+    }
+    
     max_gap = 1  ## Num of frames allowed between discovered matching frames, to be included in the same sequence
     possible_sequences = find_possible_sequences(conflicting_frame_hashes, max_gap)
     rprint('conflicting_frame_hashes:')
