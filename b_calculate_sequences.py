@@ -34,9 +34,80 @@ def reorganize_sequences(sequences):
         possible_sequences[sequence_key] = seq
     return possible_sequences
 
-def identify_continuous_sequences(conflicting_frame_hashes, video_names, max_gap=1):
-    pass
+def remove_non_continuous_sequences(conflicting_frame_hashes, video_names, max_gap=1):
+    for video in video_names:
+        for key, frames in conflicting_frame_hashes.items():
+            if video in frames:
+                frame_list = frames[video]
+                # Sort the frames to ensure they are in order
+                frame_list.sort()
+                # Check for gaps
+                continuous_frames = []
+                last_frame = frame_list[0]
+                current_sequence = [last_frame]
 
+                for frame in frame_list[1:]:
+                    if frame - last_frame <= max_gap:
+                        current_sequence.append(frame)
+                    else:
+                        if len(current_sequence) > 1:
+                            continuous_frames.extend(current_sequence)
+                        current_sequence = [frame]
+                    last_frame = frame
+
+                # Add the last sequence if it's valid
+                if len(current_sequence) > 1:
+                    continuous_frames.extend(current_sequence)
+
+                # Update the frames for the video
+                frames[video] = continuous_frames
+
+    # Remove entries with no frames
+    keys_to_remove = [key for key, frames in conflicting_frame_hashes.items() if not any(frames.values())]
+    for key in keys_to_remove:
+        del conflicting_frame_hashes[key]
+        
+    return conflicting_frame_hashes
+    
+def identify_continuous_sequences(conflicting_frame_hashes, video_names, max_gap=1):
+    sequences = []
+    possible_frames = []
+
+    # Extract frames for the first video
+    first_video = list(video_names)[0]
+    all_frames_first_video = []
+
+    for frames in conflicting_frame_hashes.values():
+        if first_video in frames:
+            all_frames_first_video.append(frames[first_video])
+
+    # Flatten the list of frames and sort them
+    all_frames_first_video = sorted([frame for sublist in all_frames_first_video for frame in sublist])
+
+    current_sequence = [all_frames_first_video[0]]
+
+    for frame in all_frames_first_video[1:]:
+        if frame - current_sequence[-1] <= max_gap:
+            current_sequence.append(frame)
+        else:
+            sequences.append(current_sequence)
+            current_sequence = [frame]
+
+    # Add the last sequence if it exists
+    if current_sequence:
+        sequences.append(current_sequence)
+
+    # Identify possible frames that could be added to sequences later
+    for seq in sequences:
+        if len(seq) == 1:
+            possible_frames.append(seq[0])
+
+    pprint('Sequences:')
+    pprint(sequences)
+    pprint('Possible frames:')
+    pprint(possible_frames)
+
+    return sequences
 
 
 def find_possible_sequences(conflicting_frame_hashes, max_gap=1):
@@ -106,3 +177,21 @@ if __name__ == "__main__":
     rprint(conflicting_frame_hashes)
     rprint('possible_sequences:')
     rprint(possible_sequences)
+
+
+
+'''
+
+possible_sequences:
+{
+    'sequence 0': {'compiled_tiny_original_15b.mkv': [47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59], 'compiled_tiny_original_15c.mkv': [25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37], 'compiled_tiny_original_15a.mkv': [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]},        
+    'sequence 1': {
+        'compiled_tiny_original_15b.mkv': [4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 35, 36, 37, 38, 39, 40, 41, 42],
+        'compiled_tiny_original_15c.mkv': [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 42, 43, 44, 45, 46, 48, 49, 53, 54, 55, 56, 57, 59, 60],
+        'compiled_tiny_original_15a.mkv': [23, 24, 25, 26, 27, 28, 29, 30, 34, 35, 36, 37, 38, 39, 40, 41]
+    },
+    'sequence 2': {'compiled_tiny_original_15b.mkv': [46], 'compiled_tiny_original_15c.mkv': [24], 'compiled_tiny_original_15a.mkv': []}
+}
+
+
+'''
