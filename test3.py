@@ -1,4 +1,21 @@
 def merge_consecutive_sequences(input_dict, extras):
+    def merge_consecutive(numbers):
+        numbers.sort()
+        result = []
+        current_seq = []
+        for num in numbers:
+            if not current_seq or num == current_seq[-1] + 1:
+                current_seq.append(num)
+            else:
+                result.append(current_seq)
+                current_seq = [num]
+        if current_seq:
+            result.append(current_seq)
+        return result
+
+    def can_merge(seq1, seq2):
+        return seq1[-1] + 1 == seq2[0]
+
     # First, merge consecutive numbers within each original sequence
     merged_input = {}
     for seq_name, sequence in input_dict.items():
@@ -45,22 +62,7 @@ def merge_consecutive_sequences(input_dict, extras):
 
     return result, new_extras
 
-def merge_consecutive(numbers):
-    numbers.sort()
-    result = []
-    current_seq = []
-    for num in numbers:
-        if not current_seq or num == current_seq[-1] + 1:
-            current_seq.append(num)
-        else:
-            result.append(current_seq)
-            current_seq = [num]
-    if current_seq:
-        result.append(current_seq)
-    return result
 
-def can_merge(seq1, seq2):
-    return seq1[-1] + 1 == seq2[0]
 
 
 # Test the function
