@@ -86,7 +86,14 @@ if __name__ == '__main__':
         '1119999494849696': {'b': [30], 'c': [18]},
         '768925cd4dc3780c': {'b': [46], 'c': [24]}
     }
+    total_a = sum(len(input[key].get('a', [])) for key in input)
+    total_b = sum(len(input[key].get('b', [])) for key in input)
+    total_c = sum(len(input[key].get('c', [])) for key in input)
 
+    print(f"Total numbers under 'a': {total_a}")
+    print(f"Total numbers under 'b': {total_b}")
+    print(f"Total numbers under 'c': {total_c}")
+    
     desired_output = {
         'sequence 0': {
             'a': [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
