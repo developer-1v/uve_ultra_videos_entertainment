@@ -12,22 +12,24 @@ from merge_extras import merge_extras_into_sequences
 from merge_remaining_sequences import merge_all_sequences
 from utilities import add_to_hashes_db
 
-def debug_print(video_hashes, conflicting_frame_hashes, possible_conflicting_sequences, test_full_vids=False):
+def debug_print(video_hashes, conflicting_frame_hashes, possible_conflicting_sequences, sorted_data, merged, extras, test_full_vids=False):
+    data_labels = [
+        ("video hashes", video_hashes),
+        ("conflicting frame hashes", conflicting_frame_hashes),
+        ("possible conflicting sequences", possible_conflicting_sequences),
+        ("sorted data", sorted_data),
+        ("merged data", merged),
+        ("extras", extras)
+    ]
+    
     if test_full_vids:
         with open('log.txt', 'w') as log_file:
-            print('video hashes:\n\n', file=log_file)
-            print(video_hashes, file=log_file)
-            print('conflicting frame hashes:\n\n', file=log_file)
-            print(conflicting_frame_hashes, file=log_file)
-            print('possible conflicting sequences:\n\n', file=log_file)
-            print(possible_conflicting_sequences, file=log_file)
-            
+            for label, data in data_labels:
+                print(f'{label}:\n\n', file=log_file)
+                print(data, file=log_file)
     else:
-        rprint('video hashes:\n\n', video_hashes)
-        rprint('conflicting frame hashes:\n\n', conflicting_frame_hashes)
-        rprint('possible conflicting sequences:\n\n', possible_conflicting_sequences)
-    
-    pt.ex()
+        for label, data in data_labels:
+            rprint(f'{label}:\n\n', data)
 
 def process_series(series, test_full_vids=False, db_path='hashes.db'):
     frame_hashes = {}
@@ -52,22 +54,21 @@ def process_series(series, test_full_vids=False, db_path='hashes.db'):
             video_hashes, conflicting_frame_hashes = process_videos(
                 frame_hashes, conflicting_frame_hashes, video_paths, use_disk=use_disk, db_path=db_path)
             
-            print('conflicting_frame_hashes:')
-            rprint(conflicting_frame_hashes)
+            # print('conflicting_frame_hashes:')
+            # rprint(conflicting_frame_hashes)
             
             sorted_data = sort_data(conflicting_frame_hashes)
             merged, extras = get_merged_data(sorted_data)
             merged, extras = merge_extras_into_sequences(merged, extras)
-            merged = merge_all_sequences(merged)
+            possible_conflicting_sequences = merge_all_sequences(merged)
             
             
-            # possible_conflicting_sequences, extras = b_calculate_sequences.find_possible_sequences(conflicting_frame_hashes)
             
-            # add_to_hashes_db(possible_conflicting_sequences, db_path)
+            add_to_hashes_db(possible_conflicting_sequences, db_path)
             
-            # debug_print(video_hashes, conflicting_frame_hashes, possible_conflicting_sequences, test_full_vids)
+            debug_print(video_hashes, conflicting_frame_hashes, possible_conflicting_sequences, sorted_data, merged, extras, test_full_vids)
             
-            # compile_videos_from_dict(possible_conflicting_sequences, video_paths, per_sequence=False)
+            compile_videos_from_dict(possible_conflicting_sequences, video_paths, per_sequence=False)
             
             pt.t()
 

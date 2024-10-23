@@ -1,4 +1,4 @@
-
+from rich import print as rprint
 
 
 def merge_extras_into_sequences(sequences, extras, max_gap=1):
@@ -15,6 +15,8 @@ def merge_extras_into_sequences(sequences, extras, max_gap=1):
                         seq_data[key].append(num)
                         new_extras.remove(num)
         extras[key] = new_extras  # Update the extras with remaining numbers
+    extras[key] = new_extras  # Update the extras with remaining numbers
+    return sequences, extras
 
 if __name__ == '__main__':
     input = {
@@ -26,15 +28,18 @@ if __name__ == '__main__':
     }
     Extras = {'a': [23, 34, 91, 95], 'b': [4, 35, 92, 96, 27, 30, 46], 'c': [42, 53, 48, 59, 93, 98, 15, 18, 24]}
 
-    merge_extras_into_sequences(input, Extras)
-
+    merged, extras = merge_extras_into_sequences(input, Extras)
+    rprint('merged:')
+    rprint(merged)
+    rprint('extras:')
+    rprint(extras)
     # Print the updated sequences and extras
-    print("Merged sequences:")
-    for seq_name, seq_data in input.items():
-        print(f"{seq_name}:")
-        for key, value in seq_data.items():
-            print(f"  {key}: {value}")
-        print()
+    # print("Merged sequences:")
+    # for seq_name, seq_data in input.items():
+    #     print(f"{seq_name}:")
+    #     for key, value in seq_data.items():
+    #         print(f"  {key}: {value}")
+    #     print()
 
-    print("Updated Extras:")
-    print(Extras)
+    # print("Updated Extras:")
+    # print(Extras)

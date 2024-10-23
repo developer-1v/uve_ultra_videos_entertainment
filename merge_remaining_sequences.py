@@ -1,6 +1,6 @@
 from rich import print as rprint
 
-def merge_all_sequences(sequences, max_gap=4):
+def merge_all_sequences(sequences, max_gap=1):
     if isinstance(sequences, dict):
         sequences = list(sequences.values())
 
@@ -10,20 +10,23 @@ def merge_all_sequences(sequences, max_gap=4):
         sequences_copy = [seq.copy() for seq in sequences]  # Use deep copy to avoid modifying original during iteration
 
         # Collect all merge operations
-        for i in range(len(sequences_copy)):
+        i = 0
+        while i < len(sequences_copy):
             if key in sequences_copy[i]:
                 last_num_seq1 = sequences_copy[i][key][-1]
-                for j in range(len(sequences_copy)):
+                j = 0
+                while j < len(sequences_copy):
                     if i != j and key in sequences_copy[j]:
                         first_num_seq2 = sequences_copy[j][key][0]
                         if last_num_seq1 + 1 <= first_num_seq2 <= last_num_seq1 + max_gap:  # Adjusted condition to use max_gap
                             to_merge.append((i, j))
+                            sequences[i][key].extend(sequences[j][key])
+                            del sequences[j][key]
+                            sequences_copy[i][key].extend(sequences_copy[j][key])
+                            del sequences_copy[j][key]
                             break
-
-        # Apply all collected merge operations
-        for i, j in to_merge:
-            sequences[i][key].extend(sequences[j][key])
-            del sequences[j][key]
+                    j += 1
+            i += 1
 
         # Clean up sequences with no remaining keys under 'key'
         sequences = [seq for seq in sequences if seq.keys()]
