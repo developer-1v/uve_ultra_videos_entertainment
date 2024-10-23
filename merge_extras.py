@@ -33,13 +33,4 @@ if __name__ == '__main__':
     rprint(merged)
     rprint('extras:')
     rprint(extras)
-    # Print the updated sequences and extras
-    # print("Merged sequences:")
-    # for seq_name, seq_data in input.items():
-    #     print(f"{seq_name}:")
-    #     for key, value in seq_data.items():
-    #         print(f"  {key}: {value}")
-    #     print()
 
-    # print("Updated Extras:")
-    # print(Extras)

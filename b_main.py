@@ -12,24 +12,36 @@ from merge_extras import merge_extras_into_sequences
 from merge_remaining_sequences import merge_all_sequences
 from utilities import add_to_hashes_db
 
-def debug_print(video_hashes, conflicting_frame_hashes, possible_conflicting_sequences, sorted_data, merged, extras, test_full_vids=False):
+def debug_print(
+    video_hashes, 
+    conflicting_frame_hashes, 
+    possible_conflicting_sequences, 
+    sorted_data, 
+    merged, 
+    extras, 
+    merged_w_extras, 
+    new_extras, 
+    test_full_vids=False
+):
     data_labels = [
         ("video hashes", video_hashes),
         ("conflicting frame hashes", conflicting_frame_hashes),
-        ("possible conflicting sequences", possible_conflicting_sequences),
         ("sorted data", sorted_data),
-        ("merged data", merged),
-        ("extras", extras)
+        ("merged", merged),
+        ("extras", extras),
+        ("merged with extras", merged_w_extras),
+        ("new extras", new_extras),
+        ("possible conflicting sequences", possible_conflicting_sequences),
     ]
     
     if test_full_vids:
         with open('log.txt', 'w') as log_file:
             for label, data in data_labels:
-                print(f'{label}:\n\n', file=log_file)
+                print(f'\n{label}:\n', file=log_file)
                 print(data, file=log_file)
     else:
         for label, data in data_labels:
-            rprint(f'{label}:\n\n', data)
+            rprint(f'\n{label}:\n', data)
 
 def process_series(series, test_full_vids=False, db_path='hashes.db'):
     frame_hashes = {}
@@ -59,15 +71,26 @@ def process_series(series, test_full_vids=False, db_path='hashes.db'):
             
             sorted_data = sort_data(conflicting_frame_hashes)
             merged, extras = get_merged_data(sorted_data)
-            merged, extras = merge_extras_into_sequences(merged, extras)
-            possible_conflicting_sequences = merge_all_sequences(merged)
+            
+            merged_w_extras, new_extras = merge_extras_into_sequences(merged, extras)
+            possible_conflicting_sequences = merge_all_sequences(merged_w_extras)
             
             
             
             add_to_hashes_db(possible_conflicting_sequences, db_path)
             
-            debug_print(video_hashes, conflicting_frame_hashes, possible_conflicting_sequences, sorted_data, merged, extras, test_full_vids)
-            
+            debug_print(
+                video_hashes, 
+                conflicting_frame_hashes, 
+                possible_conflicting_sequences, 
+                sorted_data, 
+                merged, 
+                extras,
+                merged_w_extras,
+                new_extras,
+                test_full_vids
+            )
+            pt.ex()
             compile_videos_from_dict(possible_conflicting_sequences, video_paths, per_sequence=False)
             
             pt.t()

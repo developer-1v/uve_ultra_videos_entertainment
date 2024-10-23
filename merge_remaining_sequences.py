@@ -35,42 +35,55 @@ def merge_all_sequences(sequences, max_gap=1):
     labeled_sequences = {f'sequence {index}': seq for index, seq in enumerate(sequences)}
     return labeled_sequences
 
-sequences = {
-    "sequence 0": {
-        "a": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
-        "b": [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
-        "c": [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37]
-    },
-    "sequence 1": {
-        "a": [23, 24, 25],
-        "b": [4, 5, 6],
-        "c": [42, 43, 44]
-    },
-    "sequence 2": {
-        "a": [34, 35, 36],
-        "b": [35, 36, 37],
-        "c": [53, 54, 55]
-    },
-    "sequence 3": {
-        "a": [26, 27, 28, 29],
-        "b": [7, 8, 9],
-        "c": [45, 46, 48]
-    },
-    "sequence 4": {
-        "a": [37, 38, 39],
-        "b": [38, 39, 40, 41]
+if __name__ == '__main__':
+    # sequences = {
+    #     "sequence 0": {
+    #         "a": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+    #         "b": [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
+    #         "c": [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37]
+    #     },
+    #     "sequence 1": {
+    #         "a": [23, 24, 25],
+    #         "b": [4, 5, 6],
+    #         "c": [42, 43, 44]
+    #     },
+    #     "sequence 2": {
+    #         "a": [34, 35, 36],
+    #         "b": [35, 36, 37],
+    #         "c": [53, 54, 55]
+    #     },
+    #     "sequence 3": {
+    #         "a": [26, 27, 28, 29],
+    #         "b": [7, 8, 9],
+    #         "c": [45, 46, 48]
+    #     },
+    #     "sequence 4": {
+    #         "a": [37, 38, 39],
+    #         "b": [38, 39, 40, 41]
+    #     }
+    # }
+
+    # updated_extras = {
+    #     "a": [91, 95],
+    #     "b": [92, 96, 27, 30],
+    #     "c": [59, 93, 98, 15, 18]
+    # }
+
+    sequences = {
+        'sequence 0': {
+            'compiled_tiny_original_15a.mkv': [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+            'compiled_tiny_original_15b.mkv': [46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59],
+            'compiled_tiny_original_15c.mkv': [24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37]
+        },
+        'sequence 1': {'compiled_tiny_original_15a.mkv': [23, 24, 25, 26, 27, 28, 29, 30, 26, 27, 28, 29, 30], 'compiled_tiny_original_15b.mkv': [4, 5, 6, 7, 8, 9, 7, 8, 9], 'compiled_tiny_original_15c.mkv': [42, 43, 44, 45, 46, 45, 46]},
+        'sequence 2': {'compiled_tiny_original_15a.mkv': [34, 35, 36, 37, 38, 39, 37, 38, 39], 'compiled_tiny_original_15b.mkv': [35, 36, 37, 38, 39, 40, 41, 42, 38, 39, 40, 41, 42], 'compiled_tiny_original_15c.mkv': [53, 54, 55, 56, 57, 56, 57]},
+        'sequence 3': {},
+        'sequence 4': {},
+        'sequence 5': {'compiled_tiny_original_15b.mkv': [10, 11]}
     }
-}
+    extras = {'a': [91, 95], 'b': [92, 96, 27, 30], 'c': [59, 93, 98, 15, 18]}
 
-updated_extras = {
-    "a": [91, 95],
-    "b": [92, 96, 27, 30],
-    "c": [59, 93, 98, 15, 18]
-}
-
-extras = {'a': [91, 95], 'b': [92, 96, 27, 30], 'c': [59, 93, 98, 15, 18]}
-
-# Example usage:
-merged_sequences = merge_all_sequences(sequences)
-print('merged sequences:')
-rprint(merged_sequences)
+    # Example usage:
+    merged_sequences = merge_all_sequences(sequences)
+    print('merged sequences:')
+    rprint(merged_sequences)
