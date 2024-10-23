@@ -4,7 +4,6 @@ from rich import print as rprint
 
 from b_find_seasons import find_seasons, print_series
 from b_process_videos import process_videos
-import b_calculate_sequences
 from b_compile_vids import compile_videos_from_dict
 from b_sort_data import sort_data
 from b_merge_data import get_merged_data
@@ -15,12 +14,12 @@ from utilities import add_to_hashes_db
 def debug_print(
     video_hashes, 
     conflicting_frame_hashes, 
-    possible_conflicting_sequences, 
     sorted_data, 
     merged, 
     extras, 
     merged_w_extras, 
     new_extras, 
+    possible_conflicting_sequences, 
     test_full_vids=False
 ):
     data_labels = [
@@ -82,12 +81,12 @@ def process_series(series, test_full_vids=False, db_path='hashes.db'):
             debug_print(
                 video_hashes, 
                 conflicting_frame_hashes, 
-                possible_conflicting_sequences, 
                 sorted_data, 
-                merged, 
+                merged,
                 extras,
                 merged_w_extras,
                 new_extras,
+                possible_conflicting_sequences, 
                 test_full_vids
             )
             pt.ex()
@@ -114,7 +113,6 @@ if __name__ == "__main__":
         process_series(series, test_full_vids=test_full_vids, db_path=db_path)
     else:
         print("Error: find_seasons returned None. Please check the function implementation.")
-    
 
 # {'compiled': {'compiled': ['C:\\.PythonProjects\\eva_editing_videos_automatically\\videos_for_testing\\compiled_tiny_videos_for_testing\\compiled\\tiny_compiled_15a_normal.mkv',
 # 'C:\\.PythonProjects\\eva_editing_videos_automatically\\videos_for_testing\\compiled_tiny_videos_for_testing\\compiled\\tiny_compiled_15b_reverse.mkv']}}

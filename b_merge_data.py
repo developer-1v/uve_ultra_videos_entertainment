@@ -76,6 +76,7 @@ def get_merged_data(data):
         else:
             print(f"Removing empty sequence '{sequence_key}'. Content: {sequence_content}")  # Debug statement for empty sequences with content
     rprint('new_merged:', new_merged)
+    rprint('extras:', extras)
     # Return the new dictionary with renumbered, non-empty sequences and the extras
     return new_merged, extras
 
