@@ -1,11 +1,10 @@
 
 
 
-# Function to merge extras into sequences
-def merge_extras_into_sequences(sequences, extras, max_gap=2):
+def merge_extras_into_sequences(sequences, extras, max_gap=1):
     for key in extras.keys():
         new_extras = extras[key].copy()  # Copy the list to modify while iterating
-        for num in extras[key]:
+        for num in extras[key][:]:  # Iterate over a copy of the list
             for seq_name, seq_data in sequences.items():
                 if key in seq_data:  # Check if the key exists in the sequence
                     # Check if the number can be added to the beginning or end of the list within the max_gap
@@ -16,7 +15,6 @@ def merge_extras_into_sequences(sequences, extras, max_gap=2):
                         seq_data[key].append(num)
                         new_extras.remove(num)
         extras[key] = new_extras  # Update the extras with remaining numbers
-
 
 if __name__ == '__main__':
     input = {

@@ -9,13 +9,20 @@ def get_merged_data(data):
     extras = {key: [] for key in data}
     sequence_count = 0
 
+    # Create a new dictionary for the flattened data
+    flattened_data = {}
+
     # Ensure data is flattened only once
     for key in data:
         if all(isinstance(sublist, list) for sublist in data[key]):  # Check if the data needs flattening
             flat_list = []
             for sublist in data[key]:
                 flat_list.extend(sublist)
-            data[key] = flat_list
+            flattened_data[key] = flat_list
+        else:
+            flattened_data[key] = data[key]  # Copy over if already flat
+
+    data = flattened_data  # Replace original data with flattened version
 
     # Initialize pointers for each key
     pointers = {key: 0 for key in data}

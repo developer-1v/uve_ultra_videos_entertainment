@@ -8,6 +8,8 @@ import b_calculate_sequences
 from b_compile_vids import compile_videos_from_dict
 from b_sort_data import sort_data
 from b_merge_data import get_merged_data
+from merge_extras import merge_extras_into_sequences
+from merge_remaining_sequences import merge_all_sequences
 from utilities import add_to_hashes_db
 
 def debug_print(video_hashes, conflicting_frame_hashes, possible_conflicting_sequences, test_full_vids=False):
@@ -55,6 +57,8 @@ def process_series(series, test_full_vids=False, db_path='hashes.db'):
             
             sorted_data = sort_data(conflicting_frame_hashes)
             merged, extras = get_merged_data(sorted_data)
+            merged, extras = merge_extras_into_sequences(merged, extras)
+            merged = merge_all_sequences(merged)
             
             
             # possible_conflicting_sequences, extras = b_calculate_sequences.find_possible_sequences(conflicting_frame_hashes)

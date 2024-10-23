@@ -113,11 +113,11 @@ if __name__ == '__main__':
         'c': [42, 53],
     }
     
-    merged = sort_data(input)
+    sorted_data = sort_data(input)
     # merged = separate_into_sequences(merged)
-    print(merged == desired_output)
+    print(sorted_data == desired_output)
     # print(extras == desired_extras)
-    pprint(merged)
+    pprint(sorted_data)
     # pprint(extras)
     
     
