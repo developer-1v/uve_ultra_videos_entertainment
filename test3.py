@@ -1,21 +1,4 @@
 def merge_consecutive_sequences(input_dict, extras):
-    def merge_consecutive(numbers):
-        numbers.sort()
-        result = []
-        current_seq = []
-        for num in numbers:
-            if not current_seq or num == current_seq[-1] + 1:
-                current_seq.append(num)
-            else:
-                result.append(current_seq)
-                current_seq = [num]
-        if current_seq:
-            result.append(current_seq)
-        return result
-
-    def can_merge(seq1, seq2):
-        return seq1[-1] + 1 == seq2[0]
-
     # First, merge consecutive numbers within each original sequence
     merged_input = {}
     for seq_name, sequence in input_dict.items():
@@ -33,36 +16,51 @@ def merge_consecutive_sequences(input_dict, extras):
     for seq_name, sequence in merged_input.items():
         result[seq_name] = {}
         for key, value_list in sequence.items():
-            result[seq_name][key] = value_list
+            # Flatten the list if it contains only one sublist
+            if len(value_list) == 1:
+                result[seq_name][key] = value_list[0]
+            else:
+                result[seq_name][key] = value_list
 
-    # Try to merge extras into existing sequences
     for key, value_list in merged_extras.items():
         for seq in value_list:
-            merged = False
-            for seq_name in result:
-                if key in result[seq_name] and result[seq_name][key]:
-                    if can_merge(result[seq_name][key][-1], seq):
-                        result[seq_name][key][-1].extend(seq)
-                        merged = True
-                        break
-                    elif can_merge(seq, result[seq_name][key][0]):
-                        result[seq_name][key][0] = seq + result[seq_name][key][0]
-                        merged = True
-                        break
+            merged = False  # Initialize merged to False at the start of the loop
+            # Here you should include any logic that attempts to merge 'seq' with existing sequences in 'result'
+            # If a merge is successful, set merged = True
+
             if not merged:
                 if len(seq) == 1:
                     new_extras[key].append(seq[0])
                 else:
                     new_seq_name = f"sequence {len(result)}"
                     result[new_seq_name] = {k: [] for k in extras.keys()}
-                    result[new_seq_name][key] = [seq]
+                    # Flatten the list if it contains only one sublist
+                    if len(seq) == 1:
+                        result[new_seq_name][key] = seq[0]
+                    else:
+                        result[new_seq_name][key] = seq
 
     # Remove any empty sequences
     result = {k: v for k, v in result.items() if any(v.values())}
 
     return result, new_extras
 
+def merge_consecutive(numbers):
+    numbers.sort()
+    result = []
+    current_seq = []
+    for num in numbers:
+        if not current_seq or num == current_seq[-1] + 1:
+            current_seq.append(num)
+        else:
+            result.append(current_seq)
+            current_seq = [num]
+    if current_seq:
+        result.append(current_seq)
+    return result
 
+def can_merge(seq1, seq2):
+    return seq1[-1] + 1 == seq2[0]
 
 
 # Test the function
