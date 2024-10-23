@@ -1,3 +1,53 @@
+
+def merge_additional_sequences(result, updated_extras):
+    keys = list(result.keys())
+    merged = True  # Initialize a flag to check if any merge happened
+    while merged:  # Continue looping until no more merges are possible
+        merged = False  # Reset the flag for the current iteration
+        new_result = {}  # Create a new result dictionary to avoid modifying during iteration
+        keys = list(result.keys())  # Refresh the keys list in case it has changed
+
+        for i in range(len(keys)):
+            if keys[i] not in result:
+                continue  # Skip if the key has been deleted in a previous merge
+            for j in range(i + 1, len(keys)):
+                if keys[j] not in result:
+                    continue  # Skip if the key has been deleted in a previous merge
+                for subkey in result[keys[i]]:
+                    if subkey in result[keys[j]] and can_merge(result[keys[i]][subkey], result[keys[j]][subkey]):
+                        result[keys[i]][subkey].extend(result[keys[j]][subkey])
+                        del result[keys[j]]  # Remove the merged sequence
+                        merged = True  # Set the flag to True as a merge happened
+                        break  # Break to restart the process as the dictionary has changed
+                if merged:
+                    break  # Break to restart the outer loop as well
+
+        # Attempt to merge extras into the result sequences
+        for key, extras_list in list(updated_extras.items()):
+            remaining_extras = []
+            for extra in extras_list:
+                inserted = False
+                for seq_key in result:
+                    if key in result[seq_key]:
+                        if can_merge([result[seq_key][key][-1]], [extra]):  # Check if can append to end
+                            result[seq_key][key].append(extra)
+                            merged = True
+                            inserted = True
+                            break
+                        elif can_merge([extra], [result[seq_key][key][0]]):  # Check if can prepend to start
+                            result[seq_key][key].insert(0, extra)
+                            merged = True
+                            inserted = True
+                            break
+                if not inserted:
+                    remaining_extras.append(extra)
+            updated_extras[key] = remaining_extras
+
+        if not merged:  # If no merge happened in the last full pass, finalize the new_result
+            new_result = result.copy()
+
+    return new_result, updated_extras
+
 def merge_consecutive_sequences(input_dict, extras):
     # First, merge consecutive numbers within each original sequence
     merged_input = {}
@@ -42,6 +92,7 @@ def merge_consecutive_sequences(input_dict, extras):
 
     # Remove any empty sequences
     result = {k: v for k, v in result.items() if any(v.values())}
+    result, new_extras = merge_additional_sequences(result, new_extras)  # Add this line to merge additional sequences
 
     return result, new_extras
 
