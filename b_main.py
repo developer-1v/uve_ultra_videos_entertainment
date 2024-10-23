@@ -70,7 +70,7 @@ def process_series(series, test_full_vids=False, db_path='hashes.db'):
             
             sorted_data = sort_data(conflicting_frame_hashes)
             merged, extras = get_merged_data(sorted_data)
-            
+            rprint('merged 111:', merged)
             merged_w_extras, new_extras = merge_extras_into_sequences(merged, extras)
             possible_conflicting_sequences = merge_all_sequences(merged_w_extras)
             

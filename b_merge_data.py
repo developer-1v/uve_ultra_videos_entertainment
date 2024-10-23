@@ -5,44 +5,47 @@ from print_tricks import pt
 
 
 def get_merged_data(data):
+    # Create a copy of the data to avoid modifying the original input
+    data_copy = {key: list(val) for key, val in data.items()}  # Deep copy of the data
+
     merged = {}
-    extras = {key: [] for key in data}
+    extras = {key: [] for key in data_copy}
     sequence_count = 0
     pt.c('0909808908980-90-89asfdfdsasffsafsaasffsadaaaaa')
-
+    
     # Create a new dictionary for the flattened data
     flattened_data = {}
-
+    
     # Ensure data is flattened only once
-    for key in data:
-        if all(isinstance(sublist, list) for sublist in data[key]):  # Check if the data needs flattening
+    for key in data_copy:
+        if all(isinstance(sublist, list) for sublist in data_copy[key]):  # Check if the data needs flattening
             flat_list = []
-            for sublist in data[key]:
+            for sublist in data_copy[key]:
                 flat_list.extend(sublist)
             flattened_data[key] = flat_list
         else:
-            flattened_data[key] = data[key]  # Copy over if already flat
+            flattened_data[key] = data_copy[key]  # Copy over if already flat
 
-    data = flattened_data  # Replace original data with flattened version
+    data_copy = flattened_data  # Replace original data with flattened version
 
     # Initialize pointers for each key
-    pointers = {key: 0 for key in data}
-    max_length = max(len(data[key]) for key in data)
+    pointers = {key: 0 for key in data_copy}
+    max_length = max(len(data_copy[key]) for key in data_copy)
 
-    while any(pointers[key] < len(data[key]) for key in data):
-        current_sequence = {key: [] for key in data}
+    while any(pointers[key] < len(data_copy[key]) for key in data_copy):
+        current_sequence = {key: [] for key in data_copy}
         min_start = None
 
         # Determine the minimum start value for the next sequence
-        for key in data:
-            if pointers[key] < len(data[key]):
-                if min_start is None or data[key][pointers[key]] < min_start:
-                    min_start = data[key][pointers[key]]
+        for key in data_copy:
+            if pointers[key] < len(data_copy[key]):
+                if min_start is None or data_copy[key][pointers[key]] < min_start:
+                    min_start = data_copy[key][pointers[key]]
 
         # Build sequences starting from the minimum start value
-        for key in data:
-            while pointers[key] < len(data[key]) and (not current_sequence[key] or data[key][pointers[key]] == current_sequence[key][-1] + 1):
-                current_sequence[key].append(data[key][pointers[key]])
+        for key in data_copy:
+            while pointers[key] < len(data_copy[key]) and (not current_sequence[key] or data_copy[key][pointers[key]] == current_sequence[key][-1] + 1):
+                current_sequence[key].append(data_copy[key][pointers[key]])
                 pointers[key] += 1
 
         # Store the sequences or move to extras if only one frame
@@ -62,7 +65,6 @@ def get_merged_data(data):
             # Remove the sequence if it does not span multiple keys
             merged.pop(f"sequence {sequence_count}", None)
             
-            
     new_merged = {}
     new_sequence_index = 0
 
@@ -75,12 +77,10 @@ def get_merged_data(data):
             new_sequence_index += 1
         else:
             print(f"Removing empty sequence '{sequence_key}'. Content: {sequence_content}")  # Debug statement for empty sequences with content
-    rprint('new_merged:', new_merged)
-    rprint('extras:', extras)
+    # rprint('new_merged:', new_merged)
+    # rprint('extras:', extras)
     # Return the new dictionary with renumbered, non-empty sequences and the extras
     return new_merged, extras
-
-
 if __name__ == '__main__':
 
     # input = {
