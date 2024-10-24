@@ -17,8 +17,6 @@ def sort_data(input_data):
                 frame.append(tuple())  # Append empty tuple if key not present
         frames.append(frame)
     
-    # Debugging output to check frames
-    print("Collected frames:", frames)
 
     # Sort frames by the first element of the first key to maintain order
     frames.sort(key=lambda x: x[0][0] if x[0] else float('inf'))

@@ -1,86 +1,75 @@
 from rich import print as rprint
 from print_tricks import pt
+import copy
 
+
+
+
+def flatten_data(data):
+    """ Flatten nested lists in the dictionary values. """
+    flattened_data = {}
+    for key in data:
+        if all(isinstance(sublist, list) for sublist in data[key]):
+            flat_list = []
+            for sublist in data[key]:
+                flat_list.extend(sublist)
+            flattened_data[key] = flat_list
+        else:
+            flattened_data[key] = data[key]
+    return flattened_data
+
+def initialize_structures(data):
+    """ Initialize pointers and data structures for sequence building. """
+    pointers = {key: 0 for key in data}
+    max_length = max(len(data[key]) for key in data)
+    return pointers, max_length
+
+def build_sequences(data, pointers):
+    """ Build sequences from the data based on the pointers. """
+    current_sequence = {key: [] for key in data}
+    min_start = None
+    for key in data:
+        if pointers[key] < len(data[key]):
+            if min_start is None or data[key][pointers[key]] < min_start:
+                min_start = data[key][pointers[key]]
+    for key in data:
+        while pointers[key] < len(data[key]) and (not current_sequence[key] or data[key][pointers[key]] == current_sequence[key][-1] + 1):
+            current_sequence[key].append(data[key][pointers[key]])
+            pointers[key] += 1
+    return current_sequence
+
+def store_sequences(merged, extras, current_sequence, sequence_count):
+    """ Store sequences or move to extras if only one frame, working on a copy of extras. """
+    extras_copy = copy.deepcopy(extras)  # Create a deep copy of extras
+    for key in current_sequence:
+        if len(current_sequence[key]) > 1:
+            if f"sequence {sequence_count}" not in merged:
+                merged[f"sequence {sequence_count}"] = {}
+            merged[f"sequence {sequence_count}"][key] = current_sequence[key]
+        else:
+            extras_copy[key].extend(current_sequence[key])
+    return merged, extras_copy
 
 
 
 def get_merged_data(data):
-    # Create a copy of the data to avoid modifying the original input
-    data_copy = {key: list(val) for key, val in data.items()}  # Deep copy of the data
-
+    data = flatten_data(data)
+    pointers, max_length = initialize_structures(data)
     merged = {}
-    extras = {key: [] for key in data_copy}
+    extras = {key: [] for key in data}
     sequence_count = 0
-    pt.c('0909808908980-90-89asfdfdsasffsafsaasffsadaaaaa')
-    
-    # Create a new dictionary for the flattened data
-    flattened_data = {}
-    
-    # Ensure data is flattened only once
-    for key in data_copy:
-        if all(isinstance(sublist, list) for sublist in data_copy[key]):  # Check if the data needs flattening
-            flat_list = []
-            for sublist in data_copy[key]:
-                flat_list.extend(sublist)
-            flattened_data[key] = flat_list
-        else:
-            flattened_data[key] = data_copy[key]  # Copy over if already flat
 
-    data_copy = flattened_data  # Replace original data with flattened version
-
-    # Initialize pointers for each key
-    pointers = {key: 0 for key in data_copy}
-    max_length = max(len(data_copy[key]) for key in data_copy)
-
-    while any(pointers[key] < len(data_copy[key]) for key in data_copy):
-        current_sequence = {key: [] for key in data_copy}
-        min_start = None
-
-        # Determine the minimum start value for the next sequence
-        for key in data_copy:
-            if pointers[key] < len(data_copy[key]):
-                if min_start is None or data_copy[key][pointers[key]] < min_start:
-                    min_start = data_copy[key][pointers[key]]
-
-        # Build sequences starting from the minimum start value
-        for key in data_copy:
-            while pointers[key] < len(data_copy[key]) and (not current_sequence[key] or data_copy[key][pointers[key]] == current_sequence[key][-1] + 1):
-                current_sequence[key].append(data_copy[key][pointers[key]])
-                pointers[key] += 1
-
-        # Store the sequences or move to extras if only one frame
-        for key in current_sequence:
-            if len(current_sequence[key]) > 1:
-                if f"sequence {sequence_count}" not in merged:
-                    merged[f"sequence {sequence_count}"] = {}
-                merged[f"sequence {sequence_count}"][key] = current_sequence[key]
-            else:
-                # Move single-frame data to extras
-                extras[key].extend(current_sequence[key])
-
-        # Check if the sequence has more than one key before incrementing sequence_count
+    while any(pointers[key] < len(data[key]) for key in data):
+        current_sequence = build_sequences(data, pointers)
+        merged, extras = store_sequences(merged, extras, current_sequence, sequence_count)
         if len(merged.get(f"sequence {sequence_count}", {})) > 1:
             sequence_count += 1
         else:
-            # Remove the sequence if it does not span multiple keys
             merged.pop(f"sequence {sequence_count}", None)
-            
-    new_merged = {}
-    new_sequence_index = 0
+    return merged, extras
 
-    # Iterate over the original merged sequences
-    for sequence_key in sorted(merged.keys()):
-        sequence_content = merged[sequence_key]
-        if sequence_content:  # Check if the sequence is not empty
-            print(f"Renumbering '{sequence_key}' to 'sequence {new_sequence_index}'. Content: {sequence_content}")  # Debug statement with content
-            new_merged[f"sequence {new_sequence_index}"] = sequence_content
-            new_sequence_index += 1
-        else:
-            print(f"Removing empty sequence '{sequence_key}'. Content: {sequence_content}")  # Debug statement for empty sequences with content
-    # rprint('new_merged:', new_merged)
-    # rprint('extras:', extras)
-    # Return the new dictionary with renumbered, non-empty sequences and the extras
-    return new_merged, extras
+
+
 if __name__ == '__main__':
 
     # input = {
