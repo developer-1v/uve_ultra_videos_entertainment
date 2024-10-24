@@ -5,7 +5,7 @@ import os
 from rich import print as rprint
 from print_tricks import pt
 
-def process_videos(main_videos, clips_main_folder, clips_mapping):
+def process_videos(main_videos, clips_main_folder, clips_mapping, output_folder):
     # Process each main video
     for video_index, main_video_path in enumerate(main_videos):
         print(f"Processing video {video_index + 1}/4: {os.path.basename(main_video_path)}")
@@ -47,7 +47,10 @@ def process_videos(main_videos, clips_main_folder, clips_mapping):
         final_video = concatenate_videoclips(segments)
         
         # Generate output path
-        output_path = main_video_path.replace('.mkv', '_processed.mkv')
+        original_name = os.path.splitext(os.path.basename(main_video_path))[0]
+        output_filename = f"processed_{original_name}.mp4"
+        output_path = os.path.join(output_folder, output_filename)
+        
         final_video.write_videofile(output_path,
                                     codec='libx264',
                                     audio_codec='aac')
@@ -79,7 +82,9 @@ if __name__ == '__main__':
         ('commercial_stop_5.mkv',       23, 24, 25, 26),
         ('flashback_a_5.mkv',           9, 10, 11, 12),
         ('flashback_b_5.mkv',           33, 34, 35, 36),
-        ('ending_flashback_a_5.mkv',    38, 39),
+        ('ending_flashback_a_5.mkv',    38, 38, 39, 39),
         # ('ending_flashback_b_5.mkv',    40, 41),
         )
-    process_videos(main_videos, clips_main_folder, clips_mapping)
+    
+    output_folder = 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\'
+    process_videos(main_videos, clips_main_folder, clips_mapping, output_folder)

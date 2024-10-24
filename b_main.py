@@ -97,7 +97,10 @@ if __name__ == "__main__":
         series_path = fr'C:\Users\user\Downloads\_Tor\[Sokudo] Boku no Hero Academia [1080p BD][AV1][dual audio]\_vids_for_python_automatic_editing'
         db_path = 'hashes_full_vids.db'
     else:
-        series_path = os.path.join(os.getcwd(), 'videos_for_testing', 'compiled_tiny_videos_for_testing', 'compiled')
+        # series_path = os.path.join(os.getcwd(), 'videos_for_testing', 'compiled_tiny_videos_for_testing', 'compiled')
+        main_folder = 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\'
+        series_path = os.path.join(main_folder, '1_clips_to_build_vids')
+
         db_path = 'hashes_tiny_vids.db'
         
     series = find_seasons(series_path)
