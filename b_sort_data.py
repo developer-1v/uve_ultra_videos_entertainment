@@ -43,7 +43,7 @@ def sort_data(input_data):
                 sorted_data[sub_key].append(sequence)
 
     # Debugging output to check final sorted data
-    print("Final sorted data:", sorted_data)
+    # print("Final sorted data:", sorted_data)
     
     return sorted_data
 

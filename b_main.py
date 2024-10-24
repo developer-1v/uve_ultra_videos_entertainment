@@ -42,7 +42,7 @@ def debug_print(
         for label, data in data_labels:
             rprint(f'\n{label}:\n', data)
 
-def process_series(series, test_full_vids=False, db_path='hashes.db'):
+def process_series(series, test_full_vids=False, db_path='hashes.db', output_path=''):
     frame_hashes = {}
     conflicting_frame_hashes = {}
     
@@ -86,7 +86,7 @@ def process_series(series, test_full_vids=False, db_path='hashes.db'):
                 test_full_vids
             )
             # pt.ex()
-            compile_videos_from_dict(possible_conflicting_sequences, video_paths, per_sequence=False)
+            compile_videos_from_dict(possible_conflicting_sequences, video_paths, output_path=output_path, per_sequence=False)
             
             pt.t()
 
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     else:
         # series_path = os.path.join(os.getcwd(), 'videos_for_testing', 'compiled_tiny_videos_for_testing', 'compiled')
         main_folder = 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\'
-        series_path = os.path.join(main_folder, '1_clips_to_build_vids')
+        series_path = os.path.join(main_folder, '3_complete_vids_to_test')
 
         db_path = 'hashes_tiny_vids.db'
         
@@ -107,9 +107,9 @@ if __name__ == "__main__":
     pt(series)
     print_series(series)
     
-    
+    output_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\4_clips_to_remove'
     if series is not None:
-        process_series(series, test_full_vids=test_full_vids, db_path=db_path)
+        process_series(series, test_full_vids=test_full_vids, db_path=db_path, output_path=series_path)
     else:
         print("Error: find_seasons returned None. Please check the function implementation.")
 

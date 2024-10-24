@@ -4,23 +4,23 @@ from rich import print as rprint
 
 
 def merge_extras_into_sequences(sequences, extras, max_gap=1):
-    sequences_copy = deepcopy(sequences)  # Create a deep copy of sequences to avoid modifying the original data
-    extras_copy = deepcopy(extras)  # Create a deep copy of extras to avoid modifying the original data
+    sequences_copy = deepcopy(sequences)
+    extras_copy = deepcopy(extras)
     for key in extras_copy.keys():
-        new_extras = extras_copy[key].copy()  # Copy the list to modify while iterating
-        for num in extras_copy[key][:]:  # Iterate over a copy of the list
+        new_extras = extras_copy[key].copy()
+        for num in extras_copy[key][:]:
             for seq_name, seq_data in sequences_copy.items():
-                if key in seq_data:  # Check if the key exists in the sequence
-                    # Check if the number can be added to the beginning or end of the list within the max_gap
+                if key in seq_data:
                     if abs(seq_data[key][0] - num) <= max_gap:
                         seq_data[key].insert(0, num)
-                        new_extras.remove(num)
+                        if num in new_extras:  # Add this check
+                            new_extras.remove(num)
                     elif abs(seq_data[key][-1] - num) <= max_gap:
                         seq_data[key].append(num)
-                        new_extras.remove(num)
-        extras_copy[key] = new_extras  # Update the extras_copy with remaining numbers
-        merged_with_extras = sequences_copy
-    return merged_with_extras, extras_copy
+                        if num in new_extras:  # Add this check
+                            new_extras.remove(num)
+        extras_copy[key] = new_extras
+    return sequences_copy, extras_copy
 
 if __name__ == '__main__':
     input = {
