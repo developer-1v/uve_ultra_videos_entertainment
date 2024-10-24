@@ -21,8 +21,6 @@ def sort_data(input_data):
     # Sort frames by the first element of the first key to maintain order
     frames.sort(key=lambda x: x[0][0] if x[0] else float('inf'))
     
-    # Debugging output to check sorted frames
-    print("Sorted frames:", frames)
     
     # Find sorted data
     for frame in frames:

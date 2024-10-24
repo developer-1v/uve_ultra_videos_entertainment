@@ -2,46 +2,37 @@ from rich import print as rprint
 from copy import deepcopy
 
 def merge_all_sequences(sequences, max_gap=1):
-    if isinstance(sequences, dict):
-        sequences = deepcopy(list(sequences.values()))  # Create a deep copy of the sequences
-    else:
-        sequences = deepcopy(sequences)  # Ensure a deep copy is used if not initially a dictionary
+    # Ensure sequences is a list of dictionaries
+    sequences = deepcopy(list(sequences.values() if isinstance(sequences, dict) else sequences))
 
     # Convert all sequences' lists to sets for efficient merging
     for seq in sequences:
-        for key in seq:
-            seq[key] = set(seq[key])
+        seq.update((k, set(v)) for k, v in seq.items())
 
-    keys = set(k for seq in sequences for k in seq.keys())
-    for key in keys:
-        sequences_copy = [seq.copy() for seq in sequences]  # Use deep copy to avoid modifying original during iteration
+    sequences_changed = True
+    while sequences_changed:
+        sequences_changed = False
+        keys = {k for seq in sequences for k in seq}
+        
+        for key in keys:
+            for i in range(len(sequences)):
+                if key in sequences[i]:
+                    last_num_seq1 = max(sequences[i][key])
+                    for j in range(len(sequences)):
+                        if i != j and key in sequences[j]:
+                            first_num_seq2 = min(sequences[j][key])
+                            if last_num_seq1 + 1 <= first_num_seq2 <= last_num_seq1 + max_gap:
+                                sequences[i][key].update(sequences[j][key])
+                                sequences[j].pop(key, None)
+                                sequences_changed = True
+                                break
 
-        # Collect all merge operations
-        i = 0
-        while i < len(sequences_copy):
-            if key in sequences_copy[i]:
-                last_num_seq1 = max(sequences_copy[i][key])  # Use max since we're now dealing with sets
-                j = 0
-                while j < len(sequences_copy):
-                    if i != j and key in sequences_copy[j]:
-                        first_num_seq2 = min(sequences_copy[j][key])  # Use min for the same reason
-                        if last_num_seq1 + 1 <= first_num_seq2 <= last_num_seq1 + max_gap:
-                            # Merge sets directly
-                            sequences[i][key].update(sequences[j][key])
-                            del sequences[j][key]
-                            sequences_copy[i][key].update(sequences_copy[j][key])
-                            del sequences_copy[j][key]
-                            break
-                    j += 1
-            i += 1
+        # Remove empty dictionaries from the list
+        sequences = [seq for seq in sequences if seq]
 
-        # Clean up sequences with no remaining keys under 'key'
-        sequences = [seq for seq in sequences if seq.keys()]
-
-    # Convert sets back to lists if order is important, otherwise can leave as sets
+    # Convert sets back to sorted lists
     for seq in sequences:
-        for key in seq:
-            seq[key] = sorted(seq[key])  # Convert back to sorted list to maintain order
+        seq.update((k, sorted(v)) for k, v in seq.items())
 
     # Re-label sequences
     labeled_sequences = {f'sequence {index}': seq for index, seq in enumerate(sequences)}
