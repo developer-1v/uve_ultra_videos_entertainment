@@ -54,7 +54,7 @@ def process_series(series, test_full_vids=False, db_path='hashes.db'):
             pt(video_paths)
             use_disk = True
             
-            ## TEST
+            ## TEST TEMP DELET TODO ##
             ## if database already exists, delete it. 
             if os.path.exists(db_path):
                 os.remove(db_path)
@@ -64,9 +64,6 @@ def process_series(series, test_full_vids=False, db_path='hashes.db'):
             ## process videos
             video_hashes, conflicting_frame_hashes = process_videos(
                 frame_hashes, conflicting_frame_hashes, video_paths, use_disk=use_disk, db_path=db_path)
-            
-            # print('conflicting_frame_hashes:')
-            # rprint(conflicting_frame_hashes)
             
             sorted_data = sort_data(conflicting_frame_hashes)
             merged, extras = get_merged_data(sorted_data)
