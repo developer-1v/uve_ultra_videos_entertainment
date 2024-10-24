@@ -167,3 +167,28 @@ def mark_sequence_to_keep():
 
 
 ```
+
+
+
+
+'''
+CREATE NEW TEST VIDEOS:
+I need to make:
+(keep 65 frames per video)
+ - 4 new test videos (40 frames each)
+ - 2 flashbacks (4 frames each) (same as repeated video sequence)
+ - 1 black scenes per video (2 frames)
+ - 1 black scene per video (5 frames)
+ = 65 frames per video to keep
+
+(delete about 20 - 28 frames per video)
+ - opening clip (5 frames)
+ - closing clip (5 frames)
+ - Commercial break opening (3 frames)
+ - Commercial break closing (3 frames)
+ - 1 ending flashback (4 frames)
+     - At end of video 1,
+     - at start of video 2, 
+     - at end of video 3
+     - Twice in video 4, before and after the opening scene
+'''
