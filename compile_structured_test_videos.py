@@ -48,7 +48,7 @@ def process_videos(main_videos, clips_main_folder, clips_mapping, output_folder)
         
         # Generate output path
         original_name = os.path.splitext(os.path.basename(main_video_path))[0]
-        output_filename = f"processed_{original_name}.mp4"
+        output_filename = f"{original_name}.mp4"
         output_path = os.path.join(output_folder, output_filename)
         
         final_video.write_videofile(output_path,
@@ -64,7 +64,7 @@ def process_videos(main_videos, clips_main_folder, clips_mapping, output_folder)
 
 
 if __name__ == '__main__':
-    main_videos_folder = 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\'
+    main_videos_folder = 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\0_simple_vids\\'
     main_videos = [
         os.path.join(main_videos_folder, '_s01e01_40.mkv'),
         os.path.join(main_videos_folder, '_s01e02_40.mkv'),

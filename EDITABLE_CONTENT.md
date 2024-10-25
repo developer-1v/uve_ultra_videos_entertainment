@@ -157,6 +157,14 @@ def mark_identified_scene_type(scene_type):
             - We are done!!! Should be able to skip the remainder of every episode! 
                 - Meaning we don't have to process entire episodes if we can find those few items!
 
+
+        False Duplicates:
+            - If we get a false duplicates, and need to distinguish them to find the correct scenes, 
+            we have another ruleset for that. 
+            For example, we get more than one ending scene, then we pick the one that is the longest
+            scene is that is going to be the correct one in this case (if two scenes are at end of show
+            but one is longer than the other, we pick the longer one). 
+            
 def mark_sequence_to_keep():
     '''
         - Record the start time / start frame

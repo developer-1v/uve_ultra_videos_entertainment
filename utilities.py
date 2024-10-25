@@ -120,28 +120,30 @@ def get_video_properties(video_path):
         'Length of Video (seconds)': length_of_video,
         'Resolution': f"{width}x{height}"
     }
-    
+
+
 if __name__ == "__main__":
-
-    # test_add_to_hashes_db()
-    # test_extract_frame()
-
-    videos_to_check = [
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\_s01e01_40.mkv',
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\_s01e02_40.mkv',
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\_s01e03_40.mkv',
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\_s01e04_40.mkv',
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\main_opening_15.mkv',
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\main_closing_15.mkv',
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\black_scene_2.mkv',
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\black_scene_5.mkv',
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\commercial_start_5.mkv',
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\commercial_stop_5.mkv',
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\flashback_a_5.mkv',
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\flashback_b_5.mkv',
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\ending_flashback_a_5.mkv',
-        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids\\ending_flashback_b_5.mkv',
-
+    import os
+    
+    # List of directories to check for video files
+    video_directories = [
+        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\0_simple_vids',
+        # 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\1_clips_to_build_vids',
+        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\2_desired_output_vids',
+        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test',
+        # 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\4_clips_to_remove',
+        # 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\5_clips_to_keep',
+        'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\6_final_uve_edited_vids',
+        # Add more directories as needed
     ]
-    for vid in videos_to_check:
-        print(vid, ' ', get_video_properties(vid))
+    video_extensions = ('.mkv', '.mp4', '.avi')  # Add or remove extensions as needed
+    
+    # Iterate over each directory in the list
+    for video_directory in video_directories:
+        # List all files in the directory and filter for video files
+        videos_to_check = [os.path.join(video_directory, f) for f in os.listdir(video_directory) if f.endswith(video_extensions)]
+        
+        for vid in videos_to_check:
+            # Extract just the file name from the full path
+            file_name = os.path.basename(vid)
+            print(file_name, ' ', get_video_properties(vid))
