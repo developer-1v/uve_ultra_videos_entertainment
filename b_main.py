@@ -76,11 +76,8 @@ def debug_print(
     # Moved outside the `if print_data` block
     for label, data in data_labels:
         print_func(f'\n{label}:\n')
-        if isinstance(data, dict):
-            print_dict_details(data, label, print_func)
-        else:
-            if print_data:
-                print_func(f'{label}: {data}')
+        print_func(data)
+        print_dict_details(data, label, print_func)
 
 
 
@@ -127,8 +124,8 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
                 new_extras,
                 possible_conflicting_sequences, 
                 test_full_vids=False,
-                print_data=False,
-                print_key_totals=False,
+                print_data=True,
+                print_key_totals=True,
                 print_totals=True,
             )
             # pt.ex()

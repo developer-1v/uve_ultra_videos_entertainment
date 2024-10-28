@@ -38,10 +38,10 @@ def get_hash_function(method=None):
         # 'cv2_block_mean_hash': lambda frame: img_hash.BlockMeanHash_create().compute(frame).tostring(),
         # 'cv2_color_moment_hash': lambda frame: img_hash.ColorMomentHash_create().compute(frame).tostring(),
         # 'cv2_marr_hildreth_hash': lambda frame: img_hash.MarrHildrethHash_create().compute(frame).tostring(),
-        'cv2_phash': lambda frame: img_hash.PHash_create().compute(frame).tostring(),
+        # 'cv2_phash': lambda frame: img_hash.PHash_create().compute(frame).tostring(),
         # 'cv2_radial_variance_hash': lambda frame: img_hash.RadialVarianceHash_create().compute(frame).tostring(),
         # 'vishash': lambda frame: str(ImageSignature().generate_signature(frame).tostring()),  # Updated line
-        # 'xxhash': lambda frame: XXHASH(frame).hexdigest(),
+        'xxhash': lambda frame: XXHASH(frame).hexdigest(),
     }
     
     if method == 'any':
