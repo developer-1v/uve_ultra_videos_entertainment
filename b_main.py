@@ -22,7 +22,7 @@ def debug_print(
     possible_conflicting_sequences,
     test_full_vids=False,
     print_data=False,  # Controls printing of data structures
-    print_key_totals=False  # Controls printing of total items per key
+    print_key_totals=False,  # Controls printing of total items per key
     print_totals=False,  # Controls printing of total items
 ):
     data_labels = [
