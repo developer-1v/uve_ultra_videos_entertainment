@@ -21,9 +21,9 @@ def debug_print(
     new_extras, 
     possible_conflicting_sequences,
     test_full_vids=False,
-    print_data=True,  # Controls printing of data structures
+    print_data=False,  # Controls printing of data structures
+    print_key_totals=False  # Controls printing of total items per key
     print_totals=False,  # Controls printing of total items
-    print_key_totals=True  # Controls printing of total items per key
 ):
     data_labels = [
         ("video hashes", video_hashes),
@@ -73,62 +73,17 @@ def debug_print(
             for subkey, total in subkey_totals.items():
                 print_func(f'Total items in {label} {subkey}: {total} items')
 
-    if print_data:
-        for label, data in data_labels:
-            print_func(f'\n{label}:\n')
-            if isinstance(data, dict):
-                print_dict_details(data, label, print_func)
-            else:
+    # Moved outside the `if print_data` block
+    for label, data in data_labels:
+        print_func(f'\n{label}:\n')
+        if isinstance(data, dict):
+            print_dict_details(data, label, print_func)
+        else:
+            if print_data:
                 print_func(f'{label}: {data}')
 
-def process_series(series, test_full_vids=False, db_path='hashes.db', output_clips_path='', output_full_vids_path=''):
-    frame_hashes = {}
-    conflicting_frame_hashes = {}
-    
-    for series_name, seasons in series.items():
-        for season, video_paths in seasons.items():
-            
-            pt.t()
-            
-            pt(video_paths)
-            use_disk = True
-            
-            ## TEST TEMP DELET TODO ##
-            ## if database already exists, delete it. 
-            if os.path.exists(db_path):
-                os.remove(db_path)
-                time.sleep(0.1)
-                pt('deleted database!')
-                
-            ## process videos
-            video_hashes, conflicting_frame_hashes = process_videos(
-                frame_hashes, conflicting_frame_hashes, video_paths, use_disk=use_disk, db_path=db_path)
-            
-            sorted_data = sort_data(conflicting_frame_hashes)
-            merged, extras = get_merged_data(sorted_data)
-            merged_w_extras, new_extras = merge_extras_into_sequences(merged, extras)
-            possible_conflicting_sequences = merge_all_sequences(merged_w_extras)
-            
-            
-            
-            add_to_hashes_db(possible_conflicting_sequences, db_path)
-            
-            debug_print(
-                video_hashes, 
-                conflicting_frame_hashes, 
-                sorted_data,
-                merged,
-                extras,
-                merged_w_extras,
-                new_extras,
-                possible_conflicting_sequences, 
-                test_full_vids,
-            )
-            # pt.ex()
-            # extract_subclips(possible_conflicting_sequences, video_paths, output_path=output_clips_path)
-            # compile_originals_without_subclips(possible_conflicting_sequences, video_paths, output_path=output_full_vids_path)
-            
-            pt.t()
+
+
 
 def process_series(series, test_full_vids=False, db_path='hashes.db', output_clips_path='', output_full_vids_path=''):
     frame_hashes = {}
@@ -171,14 +126,21 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
                 merged_w_extras,
                 new_extras,
                 possible_conflicting_sequences, 
-                test_full_vids,
-                # count_items=False
+                test_full_vids=False,
+                print_data=False,
+                print_key_totals=False,
+                print_totals=True,
             )
             # pt.ex()
             # extract_subclips(possible_conflicting_sequences, video_paths, output_path=output_clips_path)
             # compile_originals_without_subclips(possible_conflicting_sequences, video_paths, output_path=output_full_vids_path)
             
             pt.t()
+
+
+
+
+
 
 if __name__ == "__main__":
     
@@ -188,8 +150,8 @@ if __name__ == "__main__":
         db_path = 'hashes_full_vids.db'
     else:
         main_folder = 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\'
-        series_path = os.path.join(main_folder, 'compiled_tiny_videos_for_testing', 'compiled')
-        # series_path = os.path.join(main_folder, 'tiny_vids','3_complete_vids_to_test')
+        # series_path = os.path.join(main_folder, 'compiled_tiny_videos_for_testing', 'compiled')
+        series_path = os.path.join(main_folder, 'tiny_vids','3_complete_vids_to_test')
 
         db_path = 'hashes_tiny_vids.db'
         
