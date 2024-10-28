@@ -19,9 +19,11 @@ def debug_print(
     extras, 
     merged_w_extras, 
     new_extras, 
-    possible_conflicting_sequences, 
+    possible_conflicting_sequences,
     test_full_vids=False,
-    count_items=False  # Parameter to control counting
+    print_data=True,  # Controls printing of data structures
+    print_totals=False,  # Controls printing of total items
+    print_key_totals=True  # Controls printing of total items per key
 ):
     data_labels = [
         ("video hashes", video_hashes),
@@ -34,52 +36,50 @@ def debug_print(
         ("possible conflicting sequences", possible_conflicting_sequences),
     ]
     
+    if test_full_vids:
+        with open('log.txt', 'w') as log_file:
+            def log_print(message):
+                print(message, file=log_file)
+            print_func = log_print
+    else:
+        print_func = rprint
+
     def print_dict_details(data, label, print_func):
         total_items = 0
-        subkey_totals = {}  # Dictionary to store total counts for each subkey across all main keys
+        subkey_totals = {}
 
         for key, subdict in data.items():
-            print_func(f'{label} {key}:')
             if isinstance(subdict, dict):
                 sub_total = 0
                 for subkey, items in subdict.items():
                     item_count = len(items)
                     sub_total += item_count
-                    print_func(f'  {subkey}: {items} ({item_count} items)')
-                    if subkey in subkey_totals:
-                        subkey_totals[subkey] += item_count
-                    else:
-                        subkey_totals[subkey] = item_count
-                print_func(f'  Total in {key}: {sub_total} items')
+                    if print_data:
+                        print_func(f'  {subkey}: {items} ({item_count} items)')
+                    if print_key_totals:
+                        subkey_totals[subkey] = subkey_totals.get(subkey, 0) + item_count
+                if print_key_totals:
+                    print_func(f'  Total in {key}: {sub_total} items')
                 total_items += sub_total
             else:
-                item_count = len(subdict)  # Assuming subdict is a list or similar iterable
-                print_func(f'  {subdict} ({item_count} items)')
+                item_count = len(subdict)
+                if print_data:
+                    print_func(f'  {key}: {subdict} ({item_count} items)')
                 total_items += item_count
 
-        print_func(f'Total items in {label}: {total_items}')
-        for subkey, total in subkey_totals.items():
-            print_func(f'Total items in {label} {subkey}: {total} items')
+        if print_totals:
+            print_func(f'Total items in {label}: {total_items}')
+        if print_key_totals:
+            for subkey, total in subkey_totals.items():
+                print_func(f'Total items in {label} {subkey}: {total} items')
 
-    if test_full_vids:
-        with open('log.txt', 'w') as log_file:
-            def log_print(message):
-                print(message, file=log_file)
-
-            for label, data in data_labels:
-                log_print(f'\n{label}:\n')
-                if isinstance(data, dict) and count_items:
-                    print_dict_details(data, label, log_print)
-                else:
-                    log_print(data)
-    else:
+    if print_data:
         for label, data in data_labels:
-            rprint(f'\n{label}:\n')
-            rprint(data)
-            if isinstance(data, dict) and count_items:
-                print_dict_details(data, label, rprint)
+            print_func(f'\n{label}:\n')
+            if isinstance(data, dict):
+                print_dict_details(data, label, print_func)
             else:
-                rprint(data)
+                print_func(f'{label}: {data}')
 
 def process_series(series, test_full_vids=False, db_path='hashes.db', output_clips_path='', output_full_vids_path=''):
     frame_hashes = {}
@@ -123,7 +123,6 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
                 new_extras,
                 possible_conflicting_sequences, 
                 test_full_vids,
-                count_items=True
             )
             # pt.ex()
             # extract_subclips(possible_conflicting_sequences, video_paths, output_path=output_clips_path)
