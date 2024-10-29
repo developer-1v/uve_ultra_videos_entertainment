@@ -58,8 +58,8 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
                 new_extras,
                 possible_conflicting_sequences, 
                 test_full_vids=False,
-                print_data=True,
-                print_key_totals=True,
+                print_data=False,
+                print_key_totals=False,
                 print_totals=True,
             )
             # pt.ex()
