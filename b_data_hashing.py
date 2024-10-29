@@ -18,30 +18,35 @@ from perception import hashers
 
 
 
-def get_hash_function(method=None):
+
+def get_hash_function(method=None, hash_size=8):
     """Return the hash function based on the specified method, or all methods if no method is specified."""
     HASH_METHODS = {
-        # 'imagehash_average_hash': lambda frame: str(average_hash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
-        # 'imagehash_phash': lambda frame: str(phash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
-        # 'imagehash_phash_simple': lambda frame: str(phash_simple(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
-        # 'imagehash_dhash': lambda frame: str(dhash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
-        # 'imagehash_dhash_vertical': lambda frame: str(dhash_vertical(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
-        # 'imagehash_whash': lambda frame: str(whash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
-        # 'imagehash_colorhash': lambda frame: str(colorhash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),
-        # 'perception_phash': lambda frame: hashers.PHash().compute(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))),
-        # 'perception_dhash': lambda frame: hashers.DHash().compute(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))),
-        # 'perception_ahash': lambda frame: hashers.AverageHash().compute(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))),
-        # 'perception_whash': lambda frame: hashers.WaveletHash().compute(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))),
-        # 'perception_color_moment': lambda frame: hashers.ColorMoment().compute(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))),
-        # 'perception_block_mean': lambda frame: hashers.BlockMean().compute(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))),
-        # 'cv2_average_hash': lambda frame: img_hash.AverageHash_create().compute(frame).tostring(),
-        # 'cv2_block_mean_hash': lambda frame: img_hash.BlockMeanHash_create().compute(frame).tostring(),
-        # 'cv2_color_moment_hash': lambda frame: img_hash.ColorMomentHash_create().compute(frame).tostring(),
-        # 'cv2_marr_hildreth_hash': lambda frame: img_hash.MarrHildrethHash_create().compute(frame).tostring(),
-        # 'cv2_phash': lambda frame: img_hash.PHash_create().compute(frame).tostring(),
-        # 'cv2_radial_variance_hash': lambda frame: img_hash.RadialVarianceHash_create().compute(frame).tostring(),
-        # 'vishash': lambda frame: str(ImageSignature().generate_signature(frame).tostring()),  # Updated line
-        'xxhash': lambda frame: XXHASH(frame).hexdigest(),
+        'imagehash_average_hash': lambda frame: str(average_hash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), hash_size=hash_size)),          ## 248/256  7.3s
+        # 'imagehash_colorhash': lambda frame: str(colorhash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))),                                     ## 249/256  33.5s
+        # 'imagehash_dhash_vertical': lambda frame: str(dhash_vertical(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), hash_size=hash_size)),      ## 230/256  7.4s
+        # 'imagehash_whash': lambda frame: str(whash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), hash_size=hash_size)),                        ## 238/256  43.2s
+        # 'imagehash_phash_simple': lambda frame: str(phash_simple(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), hash_size=hash_size)),          ## 213/256  7.8s
+        # 'imagehash_dhash': lambda frame: str(dhash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), hash_size=hash_size)),                        ## 116/256  7.3ss
+        # 'imagehash_phash': lambda frame: str(phash(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)), hash_size=hash_size)),                        ## 191/256  7.1s
+        
+        # 'perception_dhash': lambda frame: hashers.DHash(hash_size=hash_size).compute(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))),            ## 242/256  11.2s
+        # 'perception_ahash': lambda frame: hashers.AverageHash(hash_size=hash_size).compute(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))),      ## 233/256  9.7s
+        # 'perception_block_mean': lambda frame: hashers.BlockMean().compute(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))),                      ## 158/256  9.7s   
+        # 'perception_whash': lambda frame: hashers.WaveletHash(hash_size=hash_size).compute(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))),      ## 193/256  31.8s
+        # 'perception_phash': lambda frame: hashers.PHash(hash_size=hash_size).compute(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))),            ## 149/256  10.5s
+        # 'perception_color_moment': lambda frame: hashers.ColorMoment().compute(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))),                  ## 19/256  10.0s
+        
+        # 'cv2_block_mean_hash': lambda frame: img_hash.BlockMeanHash_create().compute(frame).tostring(),                                                   ## 224/256  3.3s
+        # 'cv2_average_hash': lambda frame: img_hash.AverageHash_create().compute(frame).tostring(),                                                        ## 219/256  3.2s
+        # 'cv2_phash': lambda frame: img_hash.PHash_create().compute(frame).tostring(),                                                                     ## 213/256  3.3s
+        # 'cv2_marr_hildreth_hash': lambda frame: img_hash.MarrHildrethHash_create().compute(frame).tostring(),                                             ## 78/256  6.4s
+        # 'cv2_radial_variance_hash': lambda frame: img_hash.RadialVarianceHash_create().compute(frame).tostring(),                                         ## 29/256  4.7s
+        # 'cv2_color_moment_hash': lambda frame: img_hash.ColorMomentHash_create().compute(frame).tostring(),                                               ## BROKEN
+        
+        # 'vishash': lambda frame: str(ImageSignature().generate_signature(frame).tostring()),                                                              ## 58/256  31s   
+        
+        # 'xxhash': lambda frame: XXHASH(frame).hexdigest(),                                                                                                ## 10/256  3.6s  
     }
     
     if method == 'any':

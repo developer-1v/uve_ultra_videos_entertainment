@@ -11,6 +11,7 @@ SUPPORTED_IMAGE_TYPES = ['.png', '.jpg', '.jpeg', '.bmp', '.gif']
 SUPPORTED_VIDEO_TYPES = ['.mp4', '.avi', '.mov', '.mkv']
 
 XXHASH = xxhash.xxh64
+# XXHASH = xxhash.xxh128
 XXHASH_BYTES = XXHASH().digest_size
 
 print(f"Bytes used by xxhash: {XXHASH_BYTES}")

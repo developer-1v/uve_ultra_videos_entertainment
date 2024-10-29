@@ -7,6 +7,34 @@ Hashing Methods:
     - https://github.com/GoFigure-LANL/VisHash
     - pip install git+https://github.com/GoFigure-LANL/VisHash.git
 
+Hashing Speeds (416 frames of videos, all frames matching against one another):
+
+    imagehash_average_hash             ## 248/256  7.3s
+    imagehash_colorhash                ## 249/256  33.5s
+    imagehash_dhash_vertical           ## 230/256  7.4s
+    imagehash_whash                    ## 238/256  43.2s
+    imagehash_phash_simple             ## 213/256  7.8s
+    imagehash_dhash                    ## 116/256  7.3ss
+    imagehash_phash                    ## 191/256  7.1s
+
+    perception_dhash                    ## 242/256  11.2s
+    perception_ahash                    ## 233/256  9.7s
+    perception_block_mean               ## 158/256  9.7s   
+    perception_whash                    ## 193/256  31.8s
+    perception_phash                    ## 149/256  10.5s
+    perception_color_moment             ## 19/256  10.0s
+
+    cv2_block_mean_hash                 ## 224/256  3.3s
+    cv2_average_hash                    ## 219/256  3.2s
+    cv2_phash                           ## 213/256  3.3s
+    cv2_marr_hildreth_hash              ## 78/256  6.4s
+    cv2_radial_variance_hash            ## 29/256  4.7s
+    cv2_color_moment_hash               ## BROKEN
+
+    vishash                             ## 58/256  31s   
+
+    xxhash                              ## 10/256  3.6s  
+
 
 FIND REPETITIVE CLIPS:
 - Process first video, saving its frame images as dictionary keys, and the frame number as the value. 
