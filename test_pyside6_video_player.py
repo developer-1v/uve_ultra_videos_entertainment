@@ -12,6 +12,8 @@ class ControlPanel(QWidget):
         self.stopButton = QPushButton("Stop")
         self.stepForwardButton = QPushButton("Step Forward")
         self.stepBackwardButton = QPushButton("Step Backward")
+        self.nextClipButton = QPushButton("Next Clip")
+        self.prevClipButton = QPushButton("Prev Clip")
         self.timelineSlider = QSlider(Qt.Horizontal)
         self.timestampLabel = QLabel("Timestamp: 00:00")
         self.frameNumberLabel = QLabel("Frame: 0/0")
@@ -24,9 +26,10 @@ class ControlPanel(QWidget):
         buttonLayout = QHBoxLayout()
         buttonLayout.addWidget(self.playPauseButton)
         buttonLayout.addWidget(self.stopButton)
+        buttonLayout.addWidget(self.stepBackwardButton)
         buttonLayout.addWidget(self.stepForwardButton)
-        buttonLayout.addWidget(self.stepBackwardButton)
-        buttonLayout.addWidget(self.stepBackwardButton)
+        buttonLayout.addWidget(self.prevClipButton)
+        buttonLayout.addWidget(self.nextClipButton)
         # Add timestamp and frame number to the button layout
         buttonLayout.addWidget(self.timestampLabel)
         buttonLayout.addWidget(self.frameNumberLabel)
@@ -46,12 +49,16 @@ class VideoPlayer(QMainWindow):
         videoUrl = QUrl.fromLocalFile(self.video_path)
         self.mediaPlayer.setSource(videoUrl)
         self.mediaPlayer.setVideoOutput(videoWidget)
+        self.mediaPlayer.durationChanged.connect(self.update_slider_max)
+        self.mediaPlayer.positionChanged.connect(self.update_slider_position)
 
         self.controlPanel = ControlPanel(self)
         self.controlPanel.playPauseButton.clicked.connect(self.toggle_play_pause)
         self.controlPanel.stopButton.clicked.connect(self.stop_video)
-        self.controlPanel.stepForwardButton.clicked.connect(self.step_forward)
         self.controlPanel.stepBackwardButton.clicked.connect(self.step_backward)
+        self.controlPanel.stepForwardButton.clicked.connect(self.step_forward)
+        self.controlPanel.prevClipButton.clicked.connect(self.prev_clip)
+        self.controlPanel.nextClipButton.clicked.connect(self.next_clip)
         self.controlPanel.timelineSlider.sliderMoved.connect(self.seek_video)
         self.controlPanel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
         videoWidget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
@@ -85,9 +92,25 @@ class VideoPlayer(QMainWindow):
         # This method will need additional implementation to move one frame backward
         pass
 
+    def next_clip(self):
+        # Logic to jump to the next video clip
+        pass
+
+    def prev_clip(self):
+        # Logic to jump to the previous video clip
+        pass
+
+    def update_slider_max(self, duration):
+        self.controlPanel.timelineSlider.setMaximum(duration)
+
+    def update_slider_position(self, position):
+        self.controlPanel.timelineSlider.setValue(position)
+    # Update the seek_video method to sync the slider with the video timeline
+
     def seek_video(self, position):
         self.mediaPlayer.setPosition(position)
-        # Update timestamp and frame number based on position
+        # Sync the slider position with the video's current position
+        self.controlPanel.timelineSlider.setValue(position)
 
 if __name__ == "__main__":
     video_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test\_s01e01_40.mp4'
