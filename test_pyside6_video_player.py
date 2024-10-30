@@ -1,8 +1,9 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QSlider, QHBoxLayout, QSizePolicy
+from PySide6.QtWidgets import (QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, 
+                                QLabel, QSlider, QHBoxLayout, QSizePolicy, QGroupBox)
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QVideoWidget
-from PySide6.QtCore import QUrl, Qt, QTimer
+from PySide6.QtCore import QUrl, Qt
 import cv2
 
 class ControlPanel(QWidget):
@@ -17,6 +18,7 @@ class ControlPanel(QWidget):
         self.timelineSlider = QSlider(Qt.Horizontal)
         self.timestampLabel = QLabel("Timestamp: 00:00")
         self.frameNumberLabel = QLabel("Frame: 0/0")
+        ## Timestamp and Frame Number GroupBox
 
         ## slider
         layout = QVBoxLayout()  # Changed from QHBoxLayout to QVBoxLayout
@@ -59,7 +61,8 @@ class VideoPlayer(QMainWindow):
         self.mediaPlayer.setVideoOutput(videoWidget)
         self.mediaPlayer.durationChanged.connect(self.update_slider_max)
         self.mediaPlayer.positionChanged.connect(self.update_slider_position)
-
+        self.mediaPlayer.positionChanged.connect(self.update_labels)
+        
         self.controlPanel = ControlPanel(self)
         self.controlPanel.playPauseButton.clicked.connect(self.toggle_play_pause)
         self.controlPanel.stopButton.clicked.connect(self.stop_video)
@@ -94,6 +97,19 @@ class VideoPlayer(QMainWindow):
         self.mediaPlayer.setVideoOutput(videoWidget)
 
 
+    def update_labels(self, position):
+            # Update timestamp label
+            milliseconds = (position % 1000)
+            seconds = (position / 1000) % 60
+            minutes = (position / (1000 * 60)) % 60
+            hours = (position / (1000 * 60 * 60)) % 24
+            timestamp = f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}:{int(milliseconds):03}"
+            self.controlPanel.timestampLabel.setText(f"Timestamp: {timestamp}")
+
+            # Update frame number label
+            current_frame = int(position / (1000 / self.frame_rate))
+            total_frames = int(self.mediaPlayer.duration() / (1000 / self.frame_rate))
+            self.controlPanel.frameNumberLabel.setText(f"Frame: {current_frame}/{total_frames}")
 
 
     def toggle_play_pause(self):
