@@ -16,15 +16,27 @@ class ControlPanel(QWidget):
         self.nextClipButton = QPushButton("Next Clip")
         self.prevClipButton = QPushButton("Prev Clip")
         self.timelineSlider = QSlider(Qt.Horizontal)
-        self.timestampLabel = QLabel("Timestamp: 00:00")
-        self.frameNumberLabel = QLabel("Frame: 0/0")
-        ## Timestamp and Frame Number GroupBox
 
-        ## slider
-        layout = QVBoxLayout()  # Changed from QHBoxLayout to QVBoxLayout
-        layout.addWidget(self.timelineSlider)  # This now comes first
-        
-        ## controls
+        # Timestamp GroupBox
+        self.timestampGroupBox = QGroupBox("Timestamp")
+        self.timestampValueLabel = QLabel("00:00")
+        timestampLayout = QVBoxLayout()
+        timestampLayout.addWidget(self.timestampValueLabel)
+        timestampLayout.setSpacing(5)  # Reduce spacing between widgets in the layout
+        timestampLayout.setContentsMargins(10, 5, 10, 5)  # Adjust left, top, right, bottom margins
+        self.timestampGroupBox.setLayout(timestampLayout)
+
+        # Frame Number GroupBox
+        self.frameNumberGroupBox = QGroupBox("Frame")
+        self.frameNumberValueLabel = QLabel("0/0")
+        frameNumberLayout = QVBoxLayout()
+        frameNumberLayout.addWidget(self.frameNumberValueLabel)
+        frameNumberLayout.setSpacing(5)  # Reduce spacing between widgets in the layout
+        frameNumberLayout.setContentsMargins(10, 5, 10, 5)  # Adjust left, top, right, bottom margins
+        self.frameNumberGroupBox.setLayout(frameNumberLayout)
+
+
+        # Controls layout
         buttonLayout = QHBoxLayout()
         buttonLayout.addWidget(self.playPauseButton)
         buttonLayout.addWidget(self.stopButton)
@@ -32,10 +44,12 @@ class ControlPanel(QWidget):
         buttonLayout.addWidget(self.stepForwardButton)
         buttonLayout.addWidget(self.prevClipButton)
         buttonLayout.addWidget(self.nextClipButton)
-        # Add timestamp and frame number to the button layout
-        buttonLayout.addWidget(self.timestampLabel)
-        buttonLayout.addWidget(self.frameNumberLabel)
-        layout.addLayout(buttonLayout)  # Add the button layout to the
+        buttonLayout.addWidget(self.timestampGroupBox)
+        buttonLayout.addWidget(self.frameNumberGroupBox)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.timelineSlider)
+        layout.addLayout(buttonLayout)
         self.setLayout(layout)
 
 
@@ -85,7 +99,9 @@ class VideoPlayer(QMainWindow):
         self.controlPanel.timelineSlider.sliderMoved.connect(self.seek_video)
         self.controlPanel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
         videoWidget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
-        
+
+
+
         widget = QWidget(self)
         self.setCentralWidget(widget)
 
@@ -98,18 +114,18 @@ class VideoPlayer(QMainWindow):
 
 
     def update_labels(self, position):
-            # Update timestamp label
-            milliseconds = (position % 1000)
-            seconds = (position / 1000) % 60
-            minutes = (position / (1000 * 60)) % 60
-            hours = (position / (1000 * 60 * 60)) % 24
-            timestamp = f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}:{int(milliseconds):03}"
-            self.controlPanel.timestampLabel.setText(f"Timestamp: {timestamp}")
+        # Calculate time components
+        milliseconds = (position % 1000)
+        seconds = (position / 1000) % 60
+        minutes = (position / (1000 * 60)) % 60
+        hours = (position / (1000 * 60 * 60)) % 24
+        timestamp = f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}:{int(milliseconds):03}"
+        self.controlPanel.timestampValueLabel.setText(timestamp)
 
-            # Update frame number label
-            current_frame = int(position / (1000 / self.frame_rate))
-            total_frames = int(self.mediaPlayer.duration() / (1000 / self.frame_rate))
-            self.controlPanel.frameNumberLabel.setText(f"Frame: {current_frame}/{total_frames}")
+        # Calculate frame number
+        current_frame = int(position / (1000 / self.frame_rate))
+        total_frames = int(self.mediaPlayer.duration() / (1000 / self.frame_rate))
+        self.controlPanel.frameNumberValueLabel.setText(f"{current_frame}/{total_frames}")
 
 
     def toggle_play_pause(self):
