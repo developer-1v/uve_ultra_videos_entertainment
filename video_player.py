@@ -72,7 +72,7 @@ class VideoPlayer(QMainWindow):
     def __init__(self, video_path):
         super().__init__()
         self.video_path = video_path
-        self.setWindowTitle("PySide6 Video Player")
+        self.setWindowTitle("Video Player")
         self.initialize_ui()
         self.setup_media_player()
         self.configure_buttons()

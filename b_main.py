@@ -4,6 +4,7 @@ from multiprocessing import Process
 from print_tricks import pt
 from rich import print as rprint
 
+from gui import run as run_gui
 from b_find_seasons import find_seasons, print_series
 from b_process_videos import process_videos
 from b_compile_vids import extract_subclips, compile_originals_without_subclips
@@ -13,7 +14,8 @@ from merge_extras import merge_extras_into_sequences
 from merge_remaining_sequences import merge_all_sequences
 from utilities import add_to_hashes_db
 from debugging_module import debug_print
-from gui import run as run_gui
+from simplify_sequences import simplify_sequences
+from mark_videos import mark_videos
 
 
 def process_series(series, test_full_vids=False, db_path='hashes.db', output_clips_path='', output_full_vids_path=''):
@@ -43,7 +45,9 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
             merged, extras = get_merged_data(sorted_data)
             merged_w_extras, new_extras = merge_extras_into_sequences(merged, extras)
             possible_conflicting_sequences = merge_all_sequences(merged_w_extras)
+            simplified_possible_conflicting_sequences, missing_frames = simplify_sequences(possible_conflicting_sequences)
             
+            mark_videos(series, simplified_possible_conflicting_sequences)
             
             
             add_to_hashes_db(possible_conflicting_sequences, db_path)
@@ -63,7 +67,7 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
                 print_totals=True,
             )
             # pt.ex()
-            # extract_subclips(possible_conflicting_sequences, video_paths, output_path=output_clips_path)
+            extract_subclips(simplified_possible_conflicting_sequences, video_paths, output_path=output_clips_path)
             # compile_originals_without_subclips(possible_conflicting_sequences, video_paths, output_path=output_full_vids_path)
             
             pt.t()

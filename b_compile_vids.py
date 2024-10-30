@@ -17,17 +17,17 @@ def extract_and_save_subclip(video_path, start_time, end_time, output_path):
 def extract_subclips(video_dict, original_video_paths, output_path):
     """Extracts specified subclips from videos."""
     for sequence_index, (sequence_name, videos) in enumerate(video_dict.items()):
-        for video_name, frames in videos.items():
-            if not frames:
-                print(f"Warning: No frames found for {video_name} in {sequence_name}. Skipping.")
+        for video_name, (start_frame, end_frame) in videos.items():
+            if start_frame is None or end_frame is None:
+                print(f"Warning: No valid frame range found for {video_name} in {sequence_name}. Skipping.")
                 continue
 
             for video_path in original_video_paths:
                 if os.path.basename(video_path) == video_name:
                     with VideoFileClip(video_path) as clip:
-                        start_time = frames[0] / clip.fps
-                        end_time = frames[-1] / clip.fps
-                        subclip_output_path = os.path.join(output_path, f"clip_{sequence_index}({frames[0]}_{frames[-1]})_{video_name}")
+                        start_time = start_frame / clip.fps
+                        end_time = end_frame / clip.fps
+                        subclip_output_path = os.path.join(output_path, f"clip_{sequence_index}({start_frame}_{end_frame})_{video_name}")
                         extract_and_save_subclip(video_path, start_time, end_time, subclip_output_path)
 
 def compile_originals_without_subclips(video_dict, original_video_paths, output_path):
@@ -61,12 +61,12 @@ if __name__ == "__main__":
 
     video_dict = {
         'sequence_0': {
-            'compiled_tiny_original_15b.mkv': [29, 30, 31, 32],
-            'compiled_tiny_original_15a.mkv': [8, 9, 10, 11, 12]
+            'compiled_tiny_original_15b.mkv': [29, 32],
+            'compiled_tiny_original_15a.mkv': [8, 12]
         },
         'sequence_1': {
-            'compiled_tiny_original_15a.mkv': [10, 11, 12, 13, 14],
-            'compiled_tiny_original_15b.mkv': [28, 29, 30, 31, 32]
+            'compiled_tiny_original_15a.mkv': [10, 14],
+            'compiled_tiny_original_15b.mkv': [28, 32]
         }
     }
 
