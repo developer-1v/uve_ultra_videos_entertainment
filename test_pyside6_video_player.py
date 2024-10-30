@@ -11,19 +11,21 @@ class ControlPanel(QWidget):
         super().__init__(parent)
         self.playPauseButton = QPushButton("Play")
         self.stopButton = QPushButton("Stop")
-        self.stepForwardButton = QPushButton("Step Forward")
-        self.stepBackwardButton = QPushButton("Step Backward")
+        self.stepForwardButton = QPushButton(">")
+        self.stepBackwardButton = QPushButton("<")
         self.nextClipButton = QPushButton("Next Clip")
         self.prevClipButton = QPushButton("Prev Clip")
         self.timelineSlider = QSlider(Qt.Horizontal)
 
+        self.set_tooltips()
+        
         # Timestamp GroupBox
         self.timestampGroupBox = QGroupBox("Timestamp")
         self.timestampValueLabel = QLabel("00:00")
         timestampLayout = QVBoxLayout()
         timestampLayout.addWidget(self.timestampValueLabel)
         timestampLayout.setSpacing(5)  # Reduce spacing between widgets in the layout
-        timestampLayout.setContentsMargins(10, 5, 10, 5)  # Adjust left, top, right, bottom margins
+        timestampLayout.setContentsMargins(10, 1, 10, 1)  # Adjust left, top, right, bottom margins
         self.timestampGroupBox.setLayout(timestampLayout)
 
         # Frame Number GroupBox
@@ -32,7 +34,7 @@ class ControlPanel(QWidget):
         frameNumberLayout = QVBoxLayout()
         frameNumberLayout.addWidget(self.frameNumberValueLabel)
         frameNumberLayout.setSpacing(5)  # Reduce spacing between widgets in the layout
-        frameNumberLayout.setContentsMargins(10, 5, 10, 5)  # Adjust left, top, right, bottom margins
+        frameNumberLayout.setContentsMargins(10, 1, 10, 5)  # Adjust left, top, right, bottom margins
         self.frameNumberGroupBox.setLayout(frameNumberLayout)
 
 
@@ -52,65 +54,72 @@ class ControlPanel(QWidget):
         layout.addLayout(buttonLayout)
         self.setLayout(layout)
 
+    def set_tooltips(self):
+        self.setup_tooltip(self.playPauseButton, "(__ Spacebar)")
+        self.setup_tooltip(self.stopButton, "(s)")
+        self.setup_tooltip(self.stepForwardButton, "(f)")
+        self.setup_tooltip(self.stepBackwardButton, "(d)")
+        self.setup_tooltip(self.nextClipButton, "(R arrow)")
+        self.setup_tooltip(self.prevClipButton, "(L arrow)")
+        self.setup_tooltip(self.timelineSlider, "")
+
+    def setup_tooltip(self, widget, text):
+        widget.setToolTip(text)
+        widget.setToolTipDuration(0)  # Tooltip shows immediately
+
 
 class VideoPlayer(QMainWindow):
     def __init__(self, video_path):
         super().__init__()
         self.video_path = video_path
         self.setWindowTitle("PySide6 Video Player")
+        self.initialize_ui()
+        self.setup_media_player()
+        self.configure_buttons()
 
-        # Initialize first_step attribute
-        self.first_step = True
-
-        # Use OpenCV to get the frame rate
-        cap = cv2.VideoCapture(self.video_path)
-        self.frame_rate = cap.get(cv2.CAP_PROP_FPS)
-        cap.release()  # Release the video capture object
-
-        self.mediaPlayer = QMediaPlayer(None)
-        videoWidget = QVideoWidget()
-        
-        videoUrl = QUrl.fromLocalFile(self.video_path)
-        self.mediaPlayer.setSource(videoUrl)
-        self.mediaPlayer.setVideoOutput(videoWidget)
-        self.mediaPlayer.durationChanged.connect(self.update_slider_max)
-        self.mediaPlayer.positionChanged.connect(self.update_slider_position)
-        self.mediaPlayer.positionChanged.connect(self.update_labels)
-        
+    def initialize_ui(self):
+        # Initialize UI components
+        self.videoWidget = QVideoWidget()
         self.controlPanel = ControlPanel(self)
-        self.controlPanel.playPauseButton.clicked.connect(self.toggle_play_pause)
-        self.controlPanel.stopButton.clicked.connect(self.stop_video)
-        
-        # Set up auto-repeat for step buttons
-        self.controlPanel.stepForwardButton.setAutoRepeat(True)
-        self.controlPanel.stepForwardButton.setAutoRepeatInterval(100)  # Interval in ms
-        self.controlPanel.stepForwardButton.setAutoRepeatDelay(500)  # Initial delay in ms
-
-        self.controlPanel.stepBackwardButton.setAutoRepeat(True)
-        self.controlPanel.stepBackwardButton.setAutoRepeatInterval(100)
-        self.controlPanel.stepBackwardButton.setAutoRepeatDelay(500)
-
-        # Connect the buttons to the stepping functions
-        self.controlPanel.stepForwardButton.clicked.connect(self.step_forward)
-        self.controlPanel.stepBackwardButton.clicked.connect(self.step_backward)
-
-        self.controlPanel.prevClipButton.clicked.connect(self.prev_clip)
-        self.controlPanel.nextClipButton.clicked.connect(self.next_clip)
-        self.controlPanel.timelineSlider.sliderMoved.connect(self.seek_video)
         self.controlPanel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
-        videoWidget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
-
-
+        self.videoWidget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
 
         widget = QWidget(self)
         self.setCentralWidget(widget)
-
         layout = QVBoxLayout()
-        layout.addWidget(videoWidget)
+        layout.addWidget(self.videoWidget)
         layout.addWidget(self.controlPanel)
         widget.setLayout(layout)
 
-        self.mediaPlayer.setVideoOutput(videoWidget)
+    def setup_media_player(self):
+        self.mediaPlayer = QMediaPlayer(None)
+        videoUrl = QUrl.fromLocalFile(self.video_path)
+        self.mediaPlayer.setSource(videoUrl)
+        self.mediaPlayer.setVideoOutput(self.videoWidget)
+        self.mediaPlayer.durationChanged.connect(self.update_slider_max)
+        self.mediaPlayer.positionChanged.connect(self.update_slider_position)
+        self.mediaPlayer.positionChanged.connect(self.update_labels)
+
+        cap = cv2.VideoCapture(self.video_path)
+        self.frame_rate = cap.get(cv2.CAP_PROP_FPS)
+        cap.release()
+
+    def configure_buttons(self):
+        # Configure buttons and connect signals
+        self.controlPanel.playPauseButton.clicked.connect(self.toggle_play_pause)
+        self.controlPanel.stopButton.clicked.connect(self.stop_video)
+        self.setup_auto_repeat(self.controlPanel.stepForwardButton, self.step_forward)
+        self.setup_auto_repeat(self.controlPanel.stepBackwardButton, self.step_backward)
+        self.controlPanel.prevClipButton.clicked.connect(self.prev_clip)
+        self.controlPanel.nextClipButton.clicked.connect(self.next_clip)
+        self.controlPanel.timelineSlider.sliderMoved.connect(self.seek_video)
+
+    def setup_auto_repeat(self, button, slot_function):
+        # Set up auto-repeat for step buttons
+        button.setAutoRepeat(True)
+        button.setAutoRepeatInterval(100)  # Interval in ms
+        button.setAutoRepeatDelay(500)  # Initial delay in ms
+        button.clicked.connect(slot_function)
 
 
     def update_labels(self, position):
@@ -146,30 +155,18 @@ class VideoPlayer(QMainWindow):
             self.mediaPlayer.pause()
 
     def step_forward(self):
-        was_playing = self.mediaPlayer.playbackState() == QMediaPlayer.PlayingState
-        self.ensure_media_ready()
+        # self.ensure_media_ready()
         frame_duration = int(round(1000 / self.frame_rate))
         current_position = self.mediaPlayer.position()
         self.mediaPlayer.setPosition(current_position + frame_duration)
-        if was_playing:
-            if self.first_step:
-                self.mediaPlayer.pause()
-                self.first_step = False
-            else:
-                self.mediaPlayer.play()
+        self.mediaPlayer.pause()
 
     def step_backward(self):
-        was_playing = self.mediaPlayer.playbackState() == QMediaPlayer.PlayingState
-        self.ensure_media_ready()
+        # self.ensure_media_ready()
         frame_duration = int(round(1000 / self.frame_rate))
         current_position = self.mediaPlayer.position()
         self.mediaPlayer.setPosition(current_position - frame_duration)
-        if was_playing:
-            if self.first_step:
-                self.mediaPlayer.pause()
-                self.first_step = False
-            else:
-                self.mediaPlayer.play()
+        self.mediaPlayer.pause()
 
 
 
