@@ -55,35 +55,19 @@ def restructure_sequences(sequences):
     pt(video_based_dict)
     return video_based_dict
 
-
-def calculate_time_in_ms(frame_number, frame_rate):
-    return int((frame_number / frame_rate) * 1000)
-
-
-
 import cv2
 
-def get_video_properties(video_path):
-    """
-    Retrieves the frame rate and duration of a video.
-
-    Args:
-    video_path (str): The path to the video file.
-
-    Returns:
-    tuple: A tuple containing the frame rate and duration in milliseconds of the video, or (None, None) if the video cannot be opened.
-    """
+def get_frame_rate(video_path):
     video = cv2.VideoCapture(video_path)
     if not video.isOpened():
         print("Error: Could not open video.")
-        return None, None
-
+        return None
     frame_rate = video.get(cv2.CAP_PROP_FPS)
-    frames = video.get(cv2.CAP_PROP_FRAME_COUNT)
-    duration_ms = int((frames / frame_rate) * 1000) if frame_rate > 0 else None
-
     video.release()
-    return frame_rate, duration_ms
+    return frame_rate
+
+def calculate_time_in_ms(frame_number, frame_rate):
+    return int((frame_number / frame_rate) * 1000)
 
 def mark_videos(series_dict, video_based_sequences, output_to_new_file=True, enabled=False, skip_chapters=False):
     for video_name, sequences in video_based_sequences.items():
@@ -92,7 +76,7 @@ def mark_videos(series_dict, video_based_sequences, output_to_new_file=True, ena
             print(f"Video file not found for name: {video_name}")
             continue
 
-        frame_rate, total_duration_ms = get_video_properties(video_path)
+        frame_rate = get_frame_rate(video_path)
         if frame_rate is None:
             print(f"Could not retrieve frame rate for video {video_path}")
             continue
@@ -100,34 +84,21 @@ def mark_videos(series_dict, video_based_sequences, output_to_new_file=True, ena
         existing_chapters = get_video_chapters(video_path)
         print(f"Existing chapters for {video_name}: {existing_chapters}")
 
-        new_chapters = []
         for sequence_name, time_frame in sequences.items():
-            for i in range(len(time_frame)//2):
-                start_ms = calculate_time_in_ms(time_frame[2*i], frame_rate)
-                end_ms = calculate_time_in_ms(time_frame[2*i + 1], frame_rate)
-                new_chapters.append({
-                    'id': f'cut_{len(existing_chapters) + i + 1}',
-                    'start_time': str(start_ms),
-                    'end_time': str(end_ms),
-                    'enabled': 'True' if enabled else 'False',
-                    'skip': 'True' if skip_chapters else 'False'
-                })
-
-        # Combine and sort chapters
-        existing_chapters = merge_chapters(existing_chapters, new_chapters)
-
-        # Set up ordered edition
-        edition_entry = f"[EDITION_ENTRY]\nEDITION_FLAG_DEFAULT=1\nEDITION_FLAG_ORDERED=1\n"
-        chapter_metadata = edition_entry + ';'.join([
-            f"[CHAPTER]\nTIMEBASE=1/1000\nSTART={int(float(chap['start_time']))}\nEND={int(float(chap['end_time']))}\n"
-            f"title={chap['id']}\nenabled={chap['enabled']}\nskip={chap['skip']}"
-            for chap in existing_chapters
-        ])
+            new_chapters = [{'id': f'cut_{len(existing_chapters) + i + 1}', 
+                             'start_time': str(calculate_time_in_ms(time_frame[0], frame_rate)), 
+                             'end_time': str(calculate_time_in_ms(time_frame[1], frame_rate)), 
+                             'enabled': 'True' if enabled else 'False',  # Use enabled parameter here
+                             'skip': 'True' if skip_chapters else 'False'}  # Conditionally set skip flag based on skip_chapters
+                            for i in range(len(time_frame)//2)]
+            existing_chapters = merge_chapters(existing_chapters, new_chapters)
 
         if output_to_new_file:
             output_path = os.path.join(os.path.dirname(video_path), f"marked_{os.path.basename(video_path)}")
         else:
             output_path = video_path  # Overwrite the original file
+
+        chapter_metadata = ';'.join([f"[CHAPTER]\nTIMEBASE=1/1000\nSTART={int(float(chap['start_time']))}\nEND={int(float(chap['end_time']))}\ntitle={chap['id']}\nenabled={chap['enabled']}\nskip={chap['skip']}" for chap in existing_chapters])
 
         try:
             ffmpeg.input(video_path) \
@@ -142,7 +113,7 @@ def mark_videos(series_dict, video_based_sequences, output_to_new_file=True, ena
 
         updated_chapters = get_video_chapters(output_path)
         print(f"Updated chapters for {video_name}: {updated_chapters}")
-        print_metadata_for_videos_path(output_path, chapters=False, editions=True, all_metadata=False)
+        print_metadata_for_videos_path(output_path, chapters_only=True)
         pt.ex()
 
 def test_marking_of_videos():
