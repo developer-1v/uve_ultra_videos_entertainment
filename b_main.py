@@ -47,10 +47,9 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
             possible_conflicting_sequences = merge_all_sequences(merged_w_extras)
             simplified_possible_conflicting_sequences, missing_frames = simplify_sequences(possible_conflicting_sequences)
             
-            mark_videos(series, simplified_possible_conflicting_sequences)
+            # mark_videos(series, simplified_possible_conflicting_sequences)
             
             
-            add_to_hashes_db(possible_conflicting_sequences, db_path)
             
             debug_print(
                 video_hashes, 
@@ -60,14 +59,16 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
                 extras,
                 merged_w_extras,
                 new_extras,
-                possible_conflicting_sequences, 
+                possible_conflicting_sequences,
+                simplified_possible_conflicting_sequences,
                 test_full_vids=False,
                 print_data=False,
                 print_key_totals=False,
                 print_totals=True,
             )
             # pt.ex()
-            extract_subclips(simplified_possible_conflicting_sequences, video_paths, output_path=output_clips_path)
+            # add_to_hashes_db(possible_conflicting_sequences, db_path)
+            # extract_subclips(simplified_possible_conflicting_sequences, video_paths, output_path=output_clips_path)
             # compile_originals_without_subclips(possible_conflicting_sequences, video_paths, output_path=output_full_vids_path)
             
             pt.t()
@@ -90,6 +91,7 @@ def test_process_series():
     series = find_seasons(series_path)
     pt(series)
     print_series(series)
+    pt.ex()
     
     output_clips_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\4_clips_to_remove'
     output_full_vids_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\6_final_uve_edited_vids'

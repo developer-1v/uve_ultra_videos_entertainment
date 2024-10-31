@@ -2,6 +2,7 @@ from rich import print as rprint
 from print_tricks import pt
 
 def debug_print(
+    ## incoming data
     video_hashes, 
     conflicting_frame_hashes, 
     sorted_data, 
@@ -10,6 +11,9 @@ def debug_print(
     merged_w_extras, 
     new_extras, 
     possible_conflicting_sequences,
+    simplified_possible_conflicting_sequences,
+
+    ## flags
     test_full_vids=False,
     print_data=False,  # Controls printing of data structures
     print_key_totals=False,  # Controls printing of total items per key
@@ -24,6 +28,7 @@ def debug_print(
         ("merged with extras", merged_w_extras),
         ("new extras", new_extras),
         ("possible conflicting sequences", possible_conflicting_sequences),
+        ("simplified possible conflicting sequences", simplified_possible_conflicting_sequences),
     ]
     
     if test_full_vids:
