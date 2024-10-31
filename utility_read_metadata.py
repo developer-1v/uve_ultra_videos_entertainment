@@ -24,11 +24,19 @@ def print_metadata(video_path, chapters_only=False):
         rprint(video_path)
         rprint(metadata)
 
-if __name__ == "__main__":
-    chapters_only = True
+def print_metadata_for_videos_path(path, chapters_only):
+    if os.path.isdir(path):
+        videos = os.listdir(path)
+        for video in videos:
+            video_path = os.path.join(path, video)
+            print_metadata(video_path, chapters_only)
+    elif os.path.isfile(path):
+        print_metadata(path, chapters_only)
+    else:
+        print(f"Provided path is neither a file nor a directory: {path}")
 
+if __name__ == "__main__":
     videos_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test'
-    videos = os.listdir(videos_path)
-    for video in videos:
-        video_path = os.path.join(videos_path, video)
-        print_metadata(video_path, chapters_only)
+    chapters_only = True
+    print_metadata_for_videos_path(videos_path, chapters_only)
+    

@@ -1,9 +1,11 @@
 from print_tricks import pt
+from utility_read_metadata import print_metadata_for_videos_path
 
 import os
 import subprocess
 import json
 import ffmpeg
+
 
 def get_video_chapters(video_path):
     cmd = [
@@ -40,13 +42,6 @@ def find_matching_video_path(series_dict, video_name):
                     return path
     return None
 
-def print_video_chapters(chapters):
-    if chapters:
-        print("Existing chapters:")
-        for chapter in chapters:
-            print(f"Chapter {chapter['id']}: Start {chapter['start_time']}, End {chapter['end_time']}, Disabled: {chapter.get('disabled', 'no')}")
-    else:
-        print("No chapters found.")
 
 def restructure_sequences(sequences):
     video_based_dict = {}
@@ -104,7 +99,7 @@ def mark_videos(series_dict, video_based_sequences, output_to_new_file=True):
         # Print the updated chapter metadata
         updated_chapters = get_video_chapters(output_path)
         print(f"Updated chapters for {video_name}: {updated_chapters}")
-        print_video_chapters(updated_chapters)
+        print_metadata_for_videos_path(output_path, chapters_only=True)
 
 
 def test_marking_of_videos():
