@@ -16,19 +16,16 @@ def print_metadata(video_path, chapters=False, editions=False, all_metadata=Fals
         chapters = extract_chapters(metadata)
         rprint(video_path)
         rprint(chapters)
-    elif editions:
+    if editions:
         # Extract and print only edition information
         editions = extract_editions(metadata)
         rprint(video_path)
         rprint(editions)
-    elif all_metadata:
+    if all_metadata:
         # Print all metadata without restrictions
         rprint(video_path)
         rprint(metadata)
-    else:
-        # Print basic metadata
-        rprint(video_path)
-        rprint(metadata['format'])
+
 
 
 
