@@ -23,8 +23,14 @@ def get_video_chapters(video_path):
 
 
 def merge_chapters(existing_chapters, new_chapters):
-    ## TODO
-    return new_chapters 
+    # Combine existing and new chapters
+    combined_chapters = existing_chapters + new_chapters
+    
+    # Sort chapters by start time to maintain order
+    combined_chapters.sort(key=lambda x: float(x['start_time']))
+    
+    # Here you could add additional logic to handle overlapping chapters if necessary
+    return combined_chapters 
 
 def find_matching_video_path(series_dict, video_name):
     for series_name, nested_dict in series_dict.items():
@@ -42,33 +48,51 @@ def print_video_chapters(chapters):
     else:
         print("No chapters found.")
 
-def mark_videos(series_dict, possible_conflicting_sequences, output_to_new_file=True):
-    for sequence_name, videos in possible_conflicting_sequences.items():
+def restructure_sequences(sequences):
+    video_based_dict = {}
+    for sequence_name, videos in sequences.items():
         for video_name, time_frame in videos.items():
-            video_path = find_matching_video_path(series_dict, video_name)
-            if video_path is None:
-                print(f"Video file not found for name: {video_name}")
-                continue
-            existing_chapters = get_video_chapters(video_path)
-            
-            new_chapters = [{'start_time': str(time_frame[0]), 'end_time': str(time_frame[1]), 'disabled': 'yes'}]
-            merged_chapters = merge_chapters(existing_chapters, new_chapters)
-            
-            if output_to_new_file:
-                output_path = os.path.join(os.path.dirname(video_path), f"marked_{video_name}")
-            else:
-                output_path = video_path  # Overwrite the original file
+            if video_name not in video_based_dict:
+                video_based_dict[video_name] = {}
+            video_based_dict[video_name][sequence_name] = time_frame
+    pt(video_based_dict)
+    return video_based_dict
 
-            file_extension = os.path.splitext(video_path)[1]  # Use the same file extension as the input
-            try:
-                ffmpeg.input(video_path) \
-                    .output(output_path, map='0', map_metadata='0', 
-                            metadata='chapter_disabled=yes', 
-                            codec='copy', format=file_extension.strip('.'), loglevel='error') \
-                    .run(overwrite_output=True)
-            except ffmpeg.Error as e:
-                pt()
-                print(f"Failed to process video {video_path}: {e}")
+# Example usage within the mark_videos function
+def mark_videos(series_dict, possible_conflicting_sequences, output_to_new_file=True):
+    # Restructure the input dictionary for easier processing by video
+    video_based_sequences = restructure_sequences(possible_conflicting_sequences)
+    
+    for video_name, sequences in video_based_sequences.items():
+        video_path = find_matching_video_path(series_dict, video_name)
+        if video_path is None:
+            print(f"Video file not found for name: {video_name}")
+            continue
+        existing_chapters = get_video_chapters(video_path)
+        
+        # Process each sequence for the current video
+        for sequence_name, time_frame in sequences.items():
+            new_chapters = [{'id': f'cut_{len(existing_chapters) + i + 1}', 'start_time': str(time_frame[0]), 'end_time': str(time_frame[1]), 'disabled': 'yes'} for i in range(len(time_frame)//2)]
+            existing_chapters = merge_chapters(existing_chapters, new_chapters)
+        
+        # After processing all sequences, determine the output path
+        if output_to_new_file:
+            output_path = os.path.join(os.path.dirname(video_path), f"marked_{video_name}")
+        else:
+            output_path = video_path  # Overwrite the original file
+
+        # Process the video with ffmpeg
+        file_extension = os.path.splitext(video_path)[1]
+        try:
+            ffmpeg.input(video_path) \
+                .output(output_path, map='0', map_metadata='0', 
+                        metadata='chapter_disabled=yes', 
+                        codec='copy', format=file_extension.strip('.'), loglevel='error') \
+                .run(overwrite_output=True)
+        except ffmpeg.Error as e:
+            pt()
+            print(f"Failed to process video {video_path}: {e}")
+        
         print(f"Updated chapters written to {output_path} for video {video_name}")
 
 
