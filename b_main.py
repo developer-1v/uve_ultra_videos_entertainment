@@ -15,7 +15,7 @@ from merge_remaining_sequences import merge_all_sequences
 from utilities import add_to_hashes_db
 from debugging_module import debug_print
 from simplify_sequences import simplify_sequences
-from mark_videos import mark_videos
+from mark_videos import mark_videos, restructure_sequences
 
 
 def process_series(series, test_full_vids=False, db_path='hashes.db', output_clips_path='', output_full_vids_path=''):
@@ -46,8 +46,8 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
             merged_w_extras, new_extras = merge_extras_into_sequences(merged, extras)
             possible_conflicting_sequences = merge_all_sequences(merged_w_extras)
             simplified_possible_conflicting_sequences, missing_frames = simplify_sequences(possible_conflicting_sequences)
-            
-            # mark_videos(series, simplified_possible_conflicting_sequences)
+            video_based_sequences = restructure_sequences(simplified_possible_conflicting_sequences)
+            mark_videos(series, video_based_sequences)
             
             
             

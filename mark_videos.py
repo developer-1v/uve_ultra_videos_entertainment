@@ -58,11 +58,7 @@ def restructure_sequences(sequences):
     pt(video_based_dict)
     return video_based_dict
 
-# Example usage within the mark_videos function
-def mark_videos(series_dict, possible_conflicting_sequences, output_to_new_file=True):
-    # Restructure the input dictionary for easier processing by video
-    video_based_sequences = restructure_sequences(possible_conflicting_sequences)
-    
+def mark_videos(series_dict, video_based_sequences, output_to_new_file=True):
     for video_name, sequences in video_based_sequences.items():
         video_path = find_matching_video_path(series_dict, video_name)
         if video_path is None:
@@ -70,30 +66,45 @@ def mark_videos(series_dict, possible_conflicting_sequences, output_to_new_file=
             continue
         existing_chapters = get_video_chapters(video_path)
         
+        # Debugging: Print existing chapters
+        print(f"Existing chapters for {video_name}: {existing_chapters}")
+        
         # Process each sequence for the current video
         for sequence_name, time_frame in sequences.items():
             new_chapters = [{'id': f'cut_{len(existing_chapters) + i + 1}', 'start_time': str(time_frame[0]), 'end_time': str(time_frame[1]), 'disabled': 'yes'} for i in range(len(time_frame)//2)]
             existing_chapters = merge_chapters(existing_chapters, new_chapters)
         
+        # Debugging: Print new chapters to be added
+        print(f"New chapters to be added for {video_name}: {existing_chapters}")
+        
         # After processing all sequences, determine the output path
         if output_to_new_file:
-            output_path = os.path.join(os.path.dirname(video_path), f"marked_{video_name}")
+            output_path = os.path.join(os.path.dirname(video_path), f"marked_{os.path.basename(video_path)}")
         else:
             output_path = video_path  # Overwrite the original file
 
-        # Process the video with ffmpeg
-        file_extension = os.path.splitext(video_path)[1]
+        # Ensure chapters are formatted correctly for ffmpeg
+        chapter_metadata = ';'.join([f"[CHAPTER]\nTIMEBASE=1/1000\nSTART={int(float(chap['start_time']) * 1000)}\nEND={int(float(chap['end_time']) * 1000)}\ntitle={chap['id']}\n" for chap in existing_chapters])
+
+        # Debugging: Print final chapter metadata
+        print(f"Final chapter metadata for {video_name}: {chapter_metadata}")
+
+        # Process the video with ffmpeg, including chapters
         try:
             ffmpeg.input(video_path) \
                 .output(output_path, map='0', map_metadata='0', 
-                        metadata='chapter_disabled=yes', 
-                        codec='copy', format=file_extension.strip('.'), loglevel='error') \
+                        codec='copy', format='matroska', loglevel='error',
+                        **{'metadata:g': chapter_metadata}) \
                 .run(overwrite_output=True)
         except ffmpeg.Error as e:
-            pt()
             print(f"Failed to process video {video_path}: {e}")
         
         print(f"Updated chapters written to {output_path} for video {video_name}")
+
+        # Print the updated chapter metadata
+        updated_chapters = get_video_chapters(output_path)
+        print(f"Updated chapters for {video_name}: {updated_chapters}")
+        print_video_chapters(updated_chapters)
 
 
 def test_marking_of_videos():
@@ -123,7 +134,8 @@ def test_marking_of_videos():
         'sequence 7': {'_s01e01_40.mp4': [80, 94], '_s01e02_40.mp4': [74, 91], '_s01e03_40.mp4': [90, 94], '_s01e04_40.mp4': [90, 94]},
     }
     
-    mark_videos(series, simplified_possible_conflicting_sequences)
+    video_based_sequences = restructure_sequences(simplified_possible_conflicting_sequences)
+    mark_videos(series, video_based_sequences)
 
 if __name__ == "__main__":
 
