@@ -40,3 +40,10 @@ if __name__ == "__main__":
     chapters_only = True
     print_metadata_for_videos_path(videos_path, chapters_only)
     
+
+
+'''
+Can we get other chapter information to? Like enabled? Does this already go for that? 
+
+
+'''
