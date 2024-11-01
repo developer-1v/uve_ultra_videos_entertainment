@@ -65,13 +65,6 @@ import cv2
 
 def get_video_properties(video_path):
     """
-    Retrieves the frame rate and duration of a video.
-
-    Args:
-    video_path (str): The path to the video file.
-
-    Returns:
-    tuple: A tuple containing the frame rate and duration in milliseconds of the video, or (None, None) if the video cannot be opened.
     """
     video = cv2.VideoCapture(video_path)
     if not video.isOpened():
@@ -84,6 +77,80 @@ def get_video_properties(video_path):
 
     video.release()
     return frame_rate, duration_ms
+
+def create_new_chapters(sequences, frame_rate, total_duration_ms, existing_chapters, add_cuts=False, add_plays=True, enabled=True, skip_chapters=False):
+    new_chapters = []
+    cut_index = len(existing_chapters)  # Start indexing cuts from the end of existing chapters
+
+    if add_cuts:
+        for sequence_name, time_frame in sequences.items():
+            for i in range(len(time_frame)//2):
+                start_ms = calculate_time_in_ms(time_frame[2*i], frame_rate)
+                end_ms = calculate_time_in_ms(time_frame[2*i + 1], frame_rate)
+                new_chapters.append({
+                    'id': f'cut_{cut_index + 1}',
+                    'start_time': str(start_ms),
+                    'end_time': str(end_ms),
+                    'enabled': enabled,
+                    'skip': skip_chapters
+                })
+                cut_index += 1  # Increment cut index for each new cut
+
+    # Sort all chapters (existing and new) by start time
+    all_chapters = sorted(existing_chapters + new_chapters, key=lambda x: int(x['start_time']))
+
+    if add_plays:
+        last_end_time = 0
+        play_index = 1
+        for chapter in all_chapters:
+            start_time = int(chapter['start_time'])
+            if last_end_time < start_time:
+                # Add a play chapter in the gap
+                new_chapters.append({
+                    'id': f'play_{play_index}',
+                    'start_time': str(last_end_time),
+                    'end_time': str(start_time),
+                    'enabled': enabled,
+                    'skip': skip_chapters
+                })
+                play_index += 1
+            last_end_time = max(last_end_time, int(chapter['end_time']))
+
+        # Check if there's remaining time after the last chapter
+        if last_end_time < total_duration_ms:
+            new_chapters.append({
+                'id': f'play_{play_index}',
+                'start_time': str(last_end_time),
+                'end_time': str(total_duration_ms),
+                'enabled': enabled,
+                'skip': skip_chapters
+            })
+
+    return new_chapters
+
+def apply_chapter_metadata(video_path, existing_chapters, output_to_new_file):
+    edition_entry = f"[EDITION_ENTRY]\nEDITION_FLAG_DEFAULT=1\nEDITION_FLAG_ORDERED=1\n"
+    chapter_metadata = edition_entry + ';'.join([
+        f"[CHAPTER]\nTIMEBASE=1/1000\nSTART={int(float(chap['start_time']))}\nEND={int(float(chap['end_time']))}\n"
+        f"title={chap['id']}\nenabled={chap['enabled']}\nskip={chap['skip']}"
+        for chap in existing_chapters
+    ])
+
+    if output_to_new_file:
+        output_path = os.path.join(os.path.dirname(video_path), f"marked_{os.path.basename(video_path)}")
+    else:
+        output_path = video_path  # Overwrite the original file
+
+    try:
+        ffmpeg.input(video_path) \
+            .output(output_path, map='0', map_metadata='0', 
+                    codec='copy', format='matroska', loglevel='error',
+                    **{'metadata:g': chapter_metadata}) \
+            .run(overwrite_output=True)
+    except ffmpeg.Error as e:
+        print(f"Failed to process video {video_path}: {e}")
+    
+    return output_path
 
 def mark_videos(series_dict, video_based_sequences, output_to_new_file=True, enabled=False, skip_chapters=False):
     for video_name, sequences in video_based_sequences.items():
@@ -98,51 +165,18 @@ def mark_videos(series_dict, video_based_sequences, output_to_new_file=True, ena
             continue
 
         existing_chapters = get_video_chapters(video_path)
-        print(f"Existing chapters for {video_name}: {existing_chapters}")
+        print(f"Initial chapters for {video_name}: {existing_chapters}")
 
-        new_chapters = []
-        for sequence_name, time_frame in sequences.items():
-            for i in range(len(time_frame)//2):
-                start_ms = calculate_time_in_ms(time_frame[2*i], frame_rate)
-                end_ms = calculate_time_in_ms(time_frame[2*i + 1], frame_rate)
-                new_chapters.append({
-                    'id': f'cut_{len(existing_chapters) + i + 1}',
-                    'start_time': str(start_ms),
-                    'end_time': str(end_ms),
-                    'enabled': 'True' if enabled else 'False',
-                    'skip': 'True' if skip_chapters else 'False'
-                })
-
-        # Combine and sort chapters
+        new_chapters = create_new_chapters(sequences, frame_rate, total_duration_ms, existing_chapters)
         existing_chapters = merge_chapters(existing_chapters, new_chapters)
+        print(f"Combined chapters for {video_name}: {existing_chapters}")
 
-        # Set up ordered edition
-        edition_entry = f"[EDITION_ENTRY]\nEDITION_FLAG_DEFAULT=1\nEDITION_FLAG_ORDERED=1\n"
-        chapter_metadata = edition_entry + ';'.join([
-            f"[CHAPTER]\nTIMEBASE=1/1000\nSTART={int(float(chap['start_time']))}\nEND={int(float(chap['end_time']))}\n"
-            f"title={chap['id']}\nenabled={chap['enabled']}\nskip={chap['skip']}"
-            for chap in existing_chapters
-        ])
-
-        if output_to_new_file:
-            output_path = os.path.join(os.path.dirname(video_path), f"marked_{os.path.basename(video_path)}")
-        else:
-            output_path = video_path  # Overwrite the original file
-
-        try:
-            ffmpeg.input(video_path) \
-                .output(output_path, map='0', map_metadata='0', 
-                        codec='copy', format='matroska', loglevel='error',
-                        **{'metadata:g': chapter_metadata}) \
-                .run(overwrite_output=True)
-        except ffmpeg.Error as e:
-            print(f"Failed to process video {video_path}: {e}")
-        
+        output_path = apply_chapter_metadata(video_path, existing_chapters, output_to_new_file)
         print(f"Updated chapters written to {output_path} for video {video_name}")
 
         updated_chapters = get_video_chapters(output_path)
         print(f"Updated chapters for {video_name}: {updated_chapters}")
-        print_metadata_for_videos_path(output_path, chapters=True, editions=True, all_metadata=False)
+        print_metadata_for_videos_path(output_path, chapters=False, editions=True, all_metadata=False)
         pt.ex()
 
 def test_marking_of_videos():

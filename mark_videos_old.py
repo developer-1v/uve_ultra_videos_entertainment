@@ -113,7 +113,7 @@ def mark_videos(series_dict, video_based_sequences, output_to_new_file=True, ena
 
         updated_chapters = get_video_chapters(output_path)
         print(f"Updated chapters for {video_name}: {updated_chapters}")
-        print_metadata_for_videos_path(output_path, chapters_only=True)
+        print_metadata_for_videos_path(output_path, chapters=False, editions=False, all_metadata=True)
         pt.ex()
 
 def test_marking_of_videos():
