@@ -78,55 +78,100 @@ def get_video_properties(video_path):
     video.release()
     return frame_rate, duration_ms
 
-def create_new_chapters(sequences, frame_rate, total_duration_ms, existing_chapters, add_cuts=False, add_plays=True, enabled=True, skip_chapters=False):
+def create_clips_to_play(sequences_to_cut):
+    '''
+    Take a list of sequences to cut, and get the frames surrounding it to 
+    obtain the list of frames that should play. 
+    
+    '''
+    chapters_to_play = {}
+    
+    for video_name, sequences in sequences_to_cut.items():
+        # Get all sequence ranges and sort them by start frame
+        seq_ranges = []
+        for seq in sequences.values():
+            seq_ranges.append(seq)
+        seq_ranges.sort(key=lambda x: x[0])
+        
+        # Find the gaps
+        gaps = []
+        
+        # Add gap before first sequence if needed
+        if seq_ranges[0][0] > 1:
+            gaps.append([1, seq_ranges[0][0] - 1])
+        
+        # Find gaps between sequences
+        for i in range(len(seq_ranges) - 1):
+            current_end = seq_ranges[i][1]
+            next_start = seq_ranges[i + 1][0]
+            if current_end + 1 < next_start:
+                gaps.append([current_end + 1, next_start - 1])
+        
+        chapters_to_play[video_name] = gaps
+    
+    return chapters_to_play
+
+def create_chapter_entries(sequences, prefix, start_index, enabled, skip_chapters, frame_rate=None):
+    """Creates chapter entries with given prefix ('cut_' or 'play_')"""
+    chapters = []
+    current_index = start_index
+    
+    for sequence_name, time_frame in sequences.items():
+        # Convert frames to ms if frame_rate is provided
+        if frame_rate:
+            start_time = calculate_time_in_ms(time_frame[0], frame_rate)
+            end_time = calculate_time_in_ms(time_frame[1], frame_rate)
+        else:
+            # If no frame_rate, assume time_frame is already in ms
+            start_time = time_frame[0]
+            end_time = time_frame[1]
+            
+        chapters.append({
+            'id': f'{prefix}{current_index}',
+            'start_time': str(start_time),
+            'end_time': str(end_time),
+            'enabled': enabled,
+            'skip': skip_chapters
+        })
+        current_index += 1
+    
+    return sorted(chapters, key=lambda x: int(x['start_time']))
+
+def create_new_chapters(sequences, frame_rate, total_duration_ms, existing_chapters, add_cuts=True, add_plays=True, enabled=True, skip_chapters=False):
     new_chapters = []
-    cut_index = len(existing_chapters)  # Start indexing cuts from the end of existing chapters
+    start_index = len(existing_chapters) + 1
 
+    # Handle cut chapters
     if add_cuts:
-        for sequence_name, time_frame in sequences.items():
-            for i in range(len(time_frame)//2):
-                start_ms = calculate_time_in_ms(time_frame[2*i], frame_rate)
-                end_ms = calculate_time_in_ms(time_frame[2*i + 1], frame_rate)
-                new_chapters.append({
-                    'id': f'cut_{cut_index + 1}',
-                    'start_time': str(start_ms),
-                    'end_time': str(end_ms),
-                    'enabled': enabled,
-                    'skip': skip_chapters
-                })
-                cut_index += 1  # Increment cut index for each new cut
+        cut_chapters = create_chapter_entries(
+            sequences, 
+            'cut_', 
+            start_index, 
+            enabled, 
+            skip_chapters,
+            frame_rate
+        )
+        new_chapters.extend(cut_chapters)
 
-    # Sort all chapters (existing and new) by start time
-    all_chapters = sorted(existing_chapters + new_chapters, key=lambda x: int(x['start_time']))
-
+    # Handle play chapters
     if add_plays:
-        last_end_time = 0
-        play_index = 1
-        for chapter in all_chapters:
-            start_time = int(chapter['start_time'])
-            if last_end_time < start_time:
-                # Add a play chapter in the gap
-                new_chapters.append({
-                    'id': f'play_{play_index}',
-                    'start_time': str(last_end_time),
-                    'end_time': str(start_time),
-                    'enabled': enabled,
-                    'skip': skip_chapters
-                })
-                play_index += 1
-            last_end_time = max(last_end_time, int(chapter['end_time']))
+        # Convert sequences to play sequences
+        play_sequences = create_clips_to_play({f"video": sequences})["video"]
+        # Convert to dictionary with sequence names
+        play_dict = {f"play_{i}": gap for i, gap in enumerate(play_sequences, 1)}
+        
+        play_chapters = create_chapter_entries(
+            play_dict,
+            'play_',
+            1,  # Always start play index from 1
+            enabled,
+            skip_chapters,
+            frame_rate
+        )
+        new_chapters.extend(play_chapters)
 
-        # Check if there's remaining time after the last chapter
-        if last_end_time < total_duration_ms:
-            new_chapters.append({
-                'id': f'play_{play_index}',
-                'start_time': str(last_end_time),
-                'end_time': str(total_duration_ms),
-                'enabled': enabled,
-                'skip': skip_chapters
-            })
+    return sorted(new_chapters, key=lambda x: int(x['start_time']))
 
-    return new_chapters
 
 def apply_chapter_metadata(video_path, existing_chapters, output_to_new_file):
     edition_entry = f"[EDITION_ENTRY]\nEDITION_FLAG_DEFAULT=1\nEDITION_FLAG_ORDERED=1\n"
@@ -152,7 +197,7 @@ def apply_chapter_metadata(video_path, existing_chapters, output_to_new_file):
     
     return output_path
 
-def mark_videos(series_dict, video_based_sequences, output_to_new_file=True, enabled=False, skip_chapters=False):
+def mark_videos(series_dict, video_based_sequences, output_to_new_file=True, enabled=False):
     for video_name, sequences in video_based_sequences.items():
         video_path = find_matching_video_path(series_dict, video_name)
         if video_path is None:
@@ -176,7 +221,7 @@ def mark_videos(series_dict, video_based_sequences, output_to_new_file=True, ena
 
         updated_chapters = get_video_chapters(output_path)
         print(f"Updated chapters for {video_name}: {updated_chapters}")
-        print_metadata_for_videos_path(output_path, chapters=False, editions=True, all_metadata=False)
+        print_metadata_for_videos_path(output_path, editions=True, all_metadata=False)
         pt.ex()
 
 def test_marking_of_videos():
@@ -195,18 +240,13 @@ def test_marking_of_videos():
     pt(series)
     # pt.ex()
     
-    simplified_possible_conflicting_sequences = {
-        'sequence 0': {'_s01e01_40.mp4': [2, 16], '_s01e02_40.mp4': [2, 16], '_s01e03_40.mp4': [3, 17], '_s01e04_40.mp4': [4, 18]},
-        'sequence 1': {'_s01e01_40.mp4': [34, 39], '_s01e02_40.mp4': [21, 23], '_s01e03_40.mp4': [22, 24], '_s01e04_40.mp4': [23, 24]},
-        'sequence 2': {'_s01e01_40.mp4': [25, 29], '_s01e02_40.mp4': [35, 39], '_s01e03_40.mp4': [36, 40], '_s01e04_40.mp4': [37, 41]},
-        'sequence 3': {'_s01e01_40.mp4': [43, 47], '_s01e02_40.mp4': [26, 30], '_s01e03_40.mp4': [27, 31], '_s01e04_40.mp4': [28, 32]},
-        'sequence 4': {'_s01e01_40.mp4': [52, 56], '_s01e02_40.mp4': [43, 48], '_s01e03_40.mp4': [44, 48], '_s01e04_40.mp4': [45, 49]},
-        'sequence 5': {'_s01e01_40.mp4': [65, 69], '_s01e02_40.mp4': [53, 57], '_s01e03_40.mp4': [53, 57], '_s01e04_40.mp4': [54, 58]},
-        'sequence 6': {'_s01e01_40.mp4': [74, 78], '_s01e02_40.mp4': [66, 70], '_s01e03_40.mp4': [66, 70], '_s01e04_40.mp4': [67, 86]},
-        'sequence 7': {'_s01e01_40.mp4': [80, 94], '_s01e02_40.mp4': [74, 91], '_s01e03_40.mp4': [90, 94], '_s01e04_40.mp4': [90, 94]},
+    video_based_sequences = {
+        '_s01e01_40.mp4': {'sequence 0': [2, 16], 'sequence 1': [34, 39], 'sequence 2': [25, 29], 'sequence 3': [43, 47], 'sequence 4': [52, 56], 'sequence 5': [65, 69], 'sequence 6': [74, 78], 'sequence 7': [80, 94]},
+        '_s01e02_40.mp4': {'sequence 0': [2, 16], 'sequence 1': [21, 23], 'sequence 2': [35, 39], 'sequence 3': [26, 30], 'sequence 4': [43, 48], 'sequence 5': [53, 57], 'sequence 6': [66, 70], 'sequence 7': [74, 91]},
+        '_s01e03_40.mp4': {'sequence 0': [3, 17], 'sequence 1': [22, 24], 'sequence 2': [36, 40], 'sequence 3': [27, 31], 'sequence 4': [44, 48], 'sequence 5': [53, 57], 'sequence 6': [66, 70], 'sequence 7': [90, 94], 'sequence 8': [73, 87]},
+        '_s01e04_40.mp4': {'sequence 0': [4, 18], 'sequence 1': [23, 24], 'sequence 2': [37, 41], 'sequence 3': [28, 32], 'sequence 4': [45, 49], 'sequence 5': [54, 58], 'sequence 6': [67, 86], 'sequence 7': [90, 94]}
     }
     
-    video_based_sequences = restructure_sequences(simplified_possible_conflicting_sequences)
     mark_videos(series, video_based_sequences)
 
 if __name__ == "__main__":

@@ -12,6 +12,7 @@ def debug_print(
     new_extras, 
     possible_conflicting_sequences,
     simplified_possible_conflicting_sequences,
+    video_based_sequences,
 
     ## flags
     test_full_vids=False,
@@ -29,6 +30,7 @@ def debug_print(
         ("new extras", new_extras),
         ("possible conflicting sequences", possible_conflicting_sequences),
         ("simplified possible conflicting sequences", simplified_possible_conflicting_sequences),
+        ("video based sequences", video_based_sequences),
     ]
     
     if test_full_vids:

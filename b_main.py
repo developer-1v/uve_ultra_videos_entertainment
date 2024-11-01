@@ -47,7 +47,7 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
             possible_conflicting_sequences = merge_all_sequences(merged_w_extras)
             simplified_possible_conflicting_sequences, missing_frames = simplify_sequences(possible_conflicting_sequences)
             video_based_sequences = restructure_sequences(simplified_possible_conflicting_sequences)
-            mark_videos(series, video_based_sequences)
+            # mark_videos(series, video_based_sequences)
             
             
             
@@ -61,6 +61,7 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
                 new_extras,
                 possible_conflicting_sequences,
                 simplified_possible_conflicting_sequences,
+                video_based_sequences,
                 test_full_vids=False,
                 print_data=False,
                 print_key_totals=False,
@@ -91,7 +92,6 @@ def test_process_series():
     series = find_seasons(series_path)
     pt(series)
     print_series(series)
-    pt.ex()
     
     output_clips_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\4_clips_to_remove'
     output_full_vids_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\6_final_uve_edited_vids'
