@@ -1,3 +1,22 @@
+'''
+recognizes keywords in titles:
+    Timestamp keywords:
+    (The jumps are interpreted as milliseconds)
+    - play_
+    - cut_
+    - possible_cut_
+    - keep_
+    Frame keywords:
+    (The jumps are interpreted as frames)
+    - play_frames_
+    - cut_frames_
+    - possible_cut_frames_
+    - keep_frames_
+'''
+
+
+
+
 import sys
 from PySide6.QtWidgets import (QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, 
                                 QLabel, QSlider, QHBoxLayout, QSizePolicy, QGroupBox)

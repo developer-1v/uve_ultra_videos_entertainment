@@ -75,5 +75,14 @@ if __name__ == "__main__":
 '''
 
 
+Let's get the inverse of these frames. instead of calling each of these sequences, 
+we will call them "play_" with the number appended on the end. All "play_" start at 
+frame 1, unless a sequence ahas already taken up that frame spot. So the play_ would 
+be the framesin between each sequences. So for the first key, play_0 would be [1,1] 
+and play_2 would be [17, 24], and play_3 would be [30, 33]. Does that make sense?
+
 
 '''
+
+
+
