@@ -7,9 +7,21 @@ import cv2
 
 import subprocess
 import json
-pt.t()
 import ffmpeg
-pt.t()
+
+
+
+def video_based_sequences_restructurer(sequences):
+    video_based_dict = {}
+    for sequence_name, videos in sequences.items():
+        for video_name, time_frame in videos.items():
+            if video_name not in video_based_dict:
+                video_based_dict[video_name] = {}
+            video_based_dict[video_name][sequence_name] = time_frame
+    pt(video_based_dict)
+    return video_based_dict
+
+
 
 
 def get_video_chapters(video_path):
@@ -45,21 +57,8 @@ def find_matching_video_path(series_dict, video_name):
                     return path
     return None
 
-
-def restructure_sequences(sequences):
-    video_based_dict = {}
-    for sequence_name, videos in sequences.items():
-        for video_name, time_frame in videos.items():
-            if video_name not in video_based_dict:
-                video_based_dict[video_name] = {}
-            video_based_dict[video_name][sequence_name] = time_frame
-    pt(video_based_dict)
-    return video_based_dict
-
-
 def calculate_time_in_ms(frame_number, frame_rate):
     return int((frame_number / frame_rate) * 1000)
-
 
 def get_video_properties(video_path):
     """
@@ -107,38 +106,38 @@ def convert_frames_to_timestamps(start_frame, end_frame, frame_rate):
     end_time = calculate_time_in_ms(end_frame, frame_rate)
     return start_time, end_time
 
-def apply_chapter_metadata(video_path, existing_chapters, output_to_new_file):
-    edition_entry = f"[EDITION_ENTRY]\nEDITION_FLAG_DEFAULT=1\nEDITION_FLAG_ORDERED=1\n"
-    chapter_metadata = edition_entry + ';'.join([
-        f"[CHAPTER]\nTIMEBASE=1/1000\nSTART={int(float(chap['start_time']))}\nEND={int(float(chap['end_time']))}\n"
-        f"title={chap['id']}\nenabled={chap['enabled']}\nskip={chap['skip']}"
-        for chap in existing_chapters
-    ])
+# def apply_chapter_metadata(video_path, existing_chapters, output_to_new_file):
+#     edition_entry = f"[EDITION_ENTRY]\nEDITION_FLAG_DEFAULT=1\nEDITION_FLAG_ORDERED=1\n"
+#     chapter_metadata = edition_entry + ';'.join([
+#         f"[CHAPTER]\nTIMEBASE=1/1000\nSTART={int(float(chap['start_time']))}\nEND={int(float(chap['end_time']))}\n"
+#         f"title={chap['id']}\nenabled={chap['enabled']}\nskip={chap['skip']}"
+#         for chap in existing_chapters
+#     ])
 
-    if output_to_new_file:
-        output_path = os.path.join(os.path.dirname(video_path), f"marked_{os.path.basename(video_path)}")
-    else:
-        output_path = video_path  # Overwrite the original file
+#     if output_to_new_file:
+#         output_path = os.path.join(os.path.dirname(video_path), f"marked_{os.path.basename(video_path)}")
+#     else:
+#         output_path = video_path  # Overwrite the original file
 
-    try:
-        ffmpeg.input(video_path) \
-            .output(output_path, map='0', map_metadata='0', 
-                    codec='copy', format='matroska', loglevel='error',
-                    **{'metadata:g': chapter_metadata}) \
-            .run(overwrite_output=True)
-    except ffmpeg.Error as e:
-        print(f"Failed to process video {video_path}: {e}")
+#     try:
+#         ffmpeg.input(video_path) \
+#             .output(output_path, map='0', map_metadata='0', 
+#                     codec='copy', format='matroska', loglevel='error',
+#                     **{'metadata:g': chapter_metadata}) \
+#             .run(overwrite_output=True)
+#     except ffmpeg.Error as e:
+#         print(f"Failed to process video {video_path}: {e}")
     
-    return output_path
+#     return output_path
 
-def convert_sequences_of_frames_to_timestamps(sequences, frame_rate):
+def convert_sequences_of_frames_to_timestamps(frame_based_sequences, frame_rate):
     """Converts all sequences from frames to timestamps."""
     timestamp_sequences = {}
-    for sequence_name, frames in sequences.items():
+    for sequence_name, frames in frame_based_sequences.items():
         start_frame, end_frame = frames
         start_time, end_time = convert_frames_to_timestamps(start_frame, end_frame, frame_rate)
         timestamp_sequences[sequence_name] = (start_time, end_time)
-    pt(sequences, timestamp_sequences)
+    pt(frame_based_sequences, timestamp_sequences)
     return timestamp_sequences
 
 def create_chapter_entries(sequences, prefix, start_index, enabled, skip_chapters):
@@ -160,8 +159,60 @@ def create_chapter_entries(sequences, prefix, start_index, enabled, skip_chapter
     
     return sorted(chapters, key=lambda x: int(x['start_time']))
 
+def determine_output_path(video_path, output_to_new_file):
+    if output_to_new_file:
+        return os.path.join(os.path.dirname(video_path), f"marked_{os.path.basename(video_path)}")
+    else:
+        return video_path  # Overwrite the original file
+
+def generate_chapter_metadata(existing_chapters):
+    """
+    Applies chapter metadata to a video file using ffmpeg.
+    
+    Args:
+    video_path (str): Path to the video file.
+    existing_chapters (list of dicts): List of chapter dictionaries with 'start_time', 'end_time', 'id', 'enabled', and 'skip' keys.
+    output_to_new_file (bool): Flag to determine if the metadata should be applied to a new file or overwrite the existing one.
+    """
+    # Edition entry to set chapters as default and ordered
+    edition_entry = (
+        "[EDITION_ENTRY]\n"
+        "EDITION_FLAG_DEFAULT=1\n"
+        "EDITION_FLAG_ORDERED=1\n"
+    )
+    
+    # Generate chapter metadata entries
+    chapter_entries = []
+    for chapter in existing_chapters:
+        chapter_entry = (
+            "[CHAPTER]\n"
+            f"TIMEBASE=1/1000\n"
+            f"START={int(float(chapter['start_time']))}\n"
+            f"END={int(float(chapter['end_time']))}\n"
+            f"title={chapter['id']}\n"
+            f"enabled={int(chapter['enabled'])}\n"
+            f"skip={int(chapter['skip'])}\n"
+        )
+        chapter_entries.append(chapter_entry)
+    
+    # Combine edition entry with all chapter entries
+    chapter_metadata = edition_entry + ';'.join(chapter_entries)
+    
+    return chapter_metadata
+
+def apply_chapter_metadata(input_video_path, output_video_path, chapters_metadata):
+    try:
+        ffmpeg.input(input_video_path) \
+            .output(output_video_path, map='0', map_metadata='0', 
+                    codec='copy', format='matroska', loglevel='error',
+                    **{'metadata:g': chapters_metadata}) \
+            .run(overwrite_output=True)
+    except ffmpeg.Error as e:
+        print(f"Failed to process video {input_video_path}: {e}")
+
 def mark_videos(series_dict, video_based_sequences, prefix='cut_', output_to_new_file=True, enabled=False):
-    for video_name, sequences in video_based_sequences.items():
+    results = []
+    for video_name, frame_sequences in video_based_sequences.items():
         video_path = find_matching_video_path(series_dict, video_name)
         if video_path is None:
             print(f"Video file not found for name: {video_name}")
@@ -172,28 +223,32 @@ def mark_videos(series_dict, video_based_sequences, prefix='cut_', output_to_new
             print(f"Could not retrieve frame rate for video {video_path}")
             continue
 
-        # Convert all sequences to timestamps
-        timestamp_sequences = convert_sequences_of_frames_to_timestamps(sequences, frame_rate)
+        timestamp_sequences = convert_sequences_of_frames_to_timestamps(frame_sequences, frame_rate)
+        initial_chapters = get_video_chapters(video_path)
+        new_chapters = create_chapter_entries(timestamp_sequences, prefix, len(initial_chapters) + 1, enabled, False)
+        merged_chapters = merge_chapters(initial_chapters, new_chapters)
 
-        existing_chapters = get_video_chapters(video_path)
-        print(f"Initial chapters for {video_name}: {existing_chapters}")
-
-        new_chapters = create_chapter_entries(timestamp_sequences, prefix, len(existing_chapters) + 1, enabled, False)
-        existing_chapters = merge_chapters(existing_chapters, new_chapters)
-        print(f"Combined chapters for {video_name}: {existing_chapters}")
-
-        output_path = apply_chapter_metadata(video_path, existing_chapters, output_to_new_file)
-        print(f"Updated chapters written to {output_path} for video {video_name}")
+        output_path = determine_output_path(video_path, output_to_new_file)
+        chapter_metadata = generate_chapter_metadata(merged_chapters)
+        apply_chapter_metadata(video_path, output_path, chapter_metadata)  # Updated to use both input and output paths
 
         updated_chapters = get_video_chapters(output_path)
-        print(f"Updated chapters for {video_name}: {updated_chapters}")
-        print_metadata_for_videos_path(output_path, editions=True, all_metadata=False)
-        pt.ex()
+        
+        results.append({
+            "video_name": video_name,
+            "output_path": output_path,
+            "updated_chapters": updated_chapters
+        })
+        # pt(results, output_path, chapter_metadata, updated_chapters)
+        # pt.ex()
+    return results
 
 def test_marking_of_videos():
     from b_main import find_seasons
     
     test_full_vids = False
+    
+    
     if test_full_vids:
         series_path = fr'C:\Users\user\Downloads\_Tor\[Sokudo] Boku no Hero Academia [1080p BD][AV1][dual audio]\_vids_for_python_automatic_editing'
     else:
@@ -206,14 +261,16 @@ def test_marking_of_videos():
     pt(series)
     # pt.ex()
     
-    video_based_cut_sequences = {
+    video_based_frame_sequences = {
         '_s01e01_40.mp4': {'sequence 0': [2, 16], 'sequence 1': [34, 39], 'sequence 2': [25, 29], 'sequence 3': [43, 47], 'sequence 4': [52, 56], 'sequence 5': [65, 69], 'sequence 6': [74, 78], 'sequence 7': [80, 94]},
         '_s01e02_40.mp4': {'sequence 0': [2, 16], 'sequence 1': [21, 23], 'sequence 2': [35, 39], 'sequence 3': [26, 30], 'sequence 4': [43, 48], 'sequence 5': [53, 57], 'sequence 6': [66, 70], 'sequence 7': [74, 91]},
         '_s01e03_40.mp4': {'sequence 0': [3, 17], 'sequence 1': [22, 24], 'sequence 2': [36, 40], 'sequence 3': [27, 31], 'sequence 4': [44, 48], 'sequence 5': [53, 57], 'sequence 6': [66, 70], 'sequence 7': [90, 94], 'sequence 8': [73, 87]},
         '_s01e04_40.mp4': {'sequence 0': [4, 18], 'sequence 1': [23, 24], 'sequence 2': [37, 41], 'sequence 3': [28, 32], 'sequence 4': [45, 49], 'sequence 5': [54, 58], 'sequence 6': [67, 86], 'sequence 7': [90, 94]}
     }
     
-    mark_videos(series, video_based_cut_sequences)
+    results = mark_videos(series, video_based_frame_sequences)
+    for result in results:
+        print_metadata_for_videos_path(result['output_path'], editions=True, all_metadata=False)
     
     
 
