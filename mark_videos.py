@@ -21,11 +21,14 @@ def video_based_sequences_restructurer(sequences):
     pt(video_based_dict)
     return video_based_dict
 
-def get_video_chapters(video_path):
+import subprocess
+import json
+
+def get_video_chapters(video_path, edition_name=None):
     cmd = [
         'ffprobe', 
         '-v', 'error', 
-        '-show_entries', 'chapter', 
+        '-show_entries', 'format', 
         '-print_format', 'json', 
         video_path
     ]
@@ -33,10 +36,39 @@ def get_video_chapters(video_path):
     if result.stderr:
         pt()
         print(f"Error reading chapters: {result.stderr.decode()}")
-    chapters = json.loads(result.stdout)
-    return chapters.get('chapters', [])
+    
+    metadata = json.loads(result.stdout)
+    tags = metadata['format'].get('tags', {})
+    edition_data = tags.get('[EDITION_ENTRY]\nEDITION_FLAG_DEFAULT', '')
+
+    # Parse the edition data
+    editions = edition_data.split(';')
+    chapters = []
+
+    for edition in editions:
+        if edition_name and edition_name not in edition:
+            continue
+        
+        chapter_lines = edition.split('\n')
+        chapter_dict = {}
+        for line in chapter_lines:
+            if '=' in line:
+                k, v = line.split('=', 1)
+                chapter_dict[k.strip()] = v.strip()
+        
+        if chapter_dict:
+            chapters.append(chapter_dict)
+    
+    pt(chapters)
+    # if len(chapters) != 0:
+    #     pt.ex()
+    return chapters
 
 def merge_chapters(existing_chapters, new_chapters):
+    # pt()
+    # if pt.r(loops=8):
+    #     pt(existing_chapters, new_chapters)
+    #     pt.ex()
     # Combine existing and new chapters
     combined_chapters = existing_chapters + new_chapters
     
@@ -212,6 +244,7 @@ def generate_chapter_metadata(existing_chapters):
     return chapter_metadata
 
 def mark_videos(video_based_sequences, video_paths, prefix='_cut_', output_to_new_file=True, enabled=False):
+    # list_of_initial_chapters = []
     results = []
     for video_name, sequences in video_based_sequences.items():
         video_path = video_paths.get(video_name)
@@ -225,8 +258,11 @@ def mark_videos(video_based_sequences, video_paths, prefix='_cut_', output_to_ne
             continue
 
         initial_chapters = get_video_chapters(video_path)
+        pt(initial_chapters)
+        # list_of_initial_chapters.append(initial_chapters)
         new_chapters = create_chapter_entries(sequences, prefix, len(initial_chapters) + 1, enabled, False)
         merged_chapters = merge_chapters(initial_chapters, new_chapters)
+        pt(initial_chapters, new_chapters, merged_chapters)
 
         output_path = determine_output_path(video_path, output_to_new_file)
         chapter_metadata = generate_chapter_metadata(merged_chapters)
@@ -239,6 +275,7 @@ def mark_videos(video_based_sequences, video_paths, prefix='_cut_', output_to_ne
             "output_path": output_path,
             "updated_chapters": updated_chapters
         })
+    # pt(list_of_initial_chapters)
     return results
 
 
