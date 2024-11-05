@@ -286,6 +286,10 @@ def test_marking_of_videos():
         
     pt(video_based_frame_sequences, video_based_timestamp_sequences)
 
+    pt(1)
+    print_metadata_for_videos_path(frame_based_results[0]['output_path'], editions=True, all_metadata=False)
+    pt(2)
+    print_metadata_for_videos_path(timestamp_based_results[0]['output_path'], editions=True, all_metadata=False)
 if __name__ == "__main__":
 
     test_marking_of_videos()
