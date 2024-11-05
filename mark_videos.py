@@ -24,6 +24,9 @@ def video_based_sequences_restructurer(sequences):
 import subprocess
 import json
 
+import subprocess
+import json
+
 def get_video_chapters(video_path, edition_name=None):
     cmd = [
         'ffprobe', 
@@ -39,27 +42,33 @@ def get_video_chapters(video_path, edition_name=None):
     
     metadata = json.loads(result.stdout)
     tags = metadata['format'].get('tags', {})
-    edition_data = tags.get('[EDITION_ENTRY]\nEDITION_FLAG_DEFAULT', '')
-
-    # Parse the edition data
-    editions = edition_data.split(';')
+    
+    # Extract all edition entries
+    edition_entries = [value for key, value in tags.items() if '[EDITION_ENTRY]' in key]
+    
     chapters = []
-
-    for edition in editions:
-        if edition_name and edition_name not in edition:
+    
+    for edition_data in edition_entries:
+        # Check if the edition name is specified and matches
+        if edition_name and edition_name not in edition_data:
             continue
         
-        chapter_lines = edition.split('\n')
-        chapter_dict = {}
-        for line in chapter_lines:
-            if '=' in line:
-                k, v = line.split('=', 1)
-                chapter_dict[k.strip()] = v.strip()
+        # Split the edition data into individual chapters
+        chapter_entries = edition_data.split(';')
         
-        if chapter_dict:
-            chapters.append(chapter_dict)
+        for chapter_entry in chapter_entries:
+            if '[CHAPTER]' in chapter_entry:
+                chapter_dict = {}
+                # Split each chapter entry into lines and parse key-value pairs
+                for line in chapter_entry.split('\n'):
+                    if '=' in line:
+                        k, v = line.split('=', 1)
+                        chapter_dict[k.strip()] = v.strip()
+                
+                if chapter_dict:
+                    chapters.append(chapter_dict)
     
-    pt(chapters)
+    pt(os.path.basename(video_path), chapters)
     # if len(chapters) != 0:
     #     pt.ex()
     return chapters
@@ -324,9 +333,9 @@ def test_marking_of_videos():
     pt(video_based_frame_sequences, video_based_timestamp_sequences)
 
     pt(1)
-    print_metadata_for_videos_path(frame_based_results[0]['output_path'], editions=True, all_metadata=False)
+    print_metadata_for_videos_path(frame_based_results[0]['output_path'], editions=False, all_metadata=True)
     pt(2)
-    print_metadata_for_videos_path(timestamp_based_results[0]['output_path'], editions=True, all_metadata=False)
+    print_metadata_for_videos_path(timestamp_based_results[0]['output_path'], editions=False, all_metadata=True)
 if __name__ == "__main__":
 
     test_marking_of_videos()
