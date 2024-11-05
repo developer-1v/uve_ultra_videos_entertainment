@@ -74,18 +74,21 @@ def get_video_chapters(video_path, edition_name=None):
     return chapters
 
 def merge_chapters(existing_chapters, new_chapters):
-    # pt()
-    # if pt.r(loops=8):
-    #     pt(existing_chapters, new_chapters)
-    #     pt.ex()
-    # Combine existing and new chapters
     combined_chapters = existing_chapters + new_chapters
     
-    # Sort chapters by start time to maintain order
-    combined_chapters.sort(key=lambda x: float(x['start_time']))
+    def get_start_time(chapter):
+        pt(chapter)
+        try:
+            pt(chapter['start_time'])
+            return float(chapter['start_time'])
+        except Exception as e:
+            pt.c(e)
+            pt(chapter['START'])
+            return float(chapter['START'])
     
-    # Here you could add additional logic to handle overlapping chapters if necessary
-    return combined_chapters 
+    combined_chapters.sort(key=get_start_time)
+    
+    return combined_chapters
 
 def find_matching_video_path(series_dict, video_name):
     for series_name, nested_dict in series_dict.items():
@@ -145,7 +148,7 @@ def convert_frames_to_timestamps(start_frame, end_frame, frame_rate):
     return start_time, end_time
 
 def create_chapter_entries(sequences, prefix, start_index, enabled, skip_chapters):
-    """Creates chapter entries with given prefix ('cut_' or 'play_')"""
+    """Creates chapter entries with given prefix ('__cut_' or '__play_')"""
     chapters = []
     current_index = start_index
     
@@ -252,8 +255,13 @@ def generate_chapter_metadata(existing_chapters):
     
     return chapter_metadata
 
-def mark_videos(video_based_sequences, video_paths, prefix='_cut_', output_to_new_file=True, enabled=False):
-    # list_of_initial_chapters = []
+def get_initial_chapters(video_path):
+    """Retrieve initial chapters from a video."""
+    initial_chapters = get_video_chapters(video_path)
+    pt(initial_chapters)
+    return initial_chapters
+
+def mark_videos(video_based_sequences, video_paths, prefix='__cut_', output_to_new_file=True, overwrite_existing_file=True, enabled=False):
     results = []
     for video_name, sequences in video_based_sequences.items():
         video_path = video_paths.get(video_name)
@@ -266,27 +274,35 @@ def mark_videos(video_based_sequences, video_paths, prefix='_cut_', output_to_ne
             print(f"Could not retrieve frame rate for video {video_path}")
             continue
 
-        initial_chapters = get_video_chapters(video_path)
-        pt(initial_chapters)
-        # list_of_initial_chapters.append(initial_chapters)
+        output_path = determine_output_path(video_path, output_to_new_file)
+        pt(output_path)
+
+        if os.path.exists(output_path) and not overwrite_existing_file:
+            # If the file exists and we should not overwrite, get chapters from the existing file
+            initial_chapters = get_initial_chapters(output_path)
+            pt(initial_chapters)
+        else:
+            # Otherwise, get chapters from the original video
+            initial_chapters = get_initial_chapters(video_path)
+            pt(initial_chapters)
+
         new_chapters = create_chapter_entries(sequences, prefix, len(initial_chapters) + 1, enabled, False)
         merged_chapters = merge_chapters(initial_chapters, new_chapters)
-        pt(initial_chapters, new_chapters, merged_chapters)
 
-        output_path = determine_output_path(video_path, output_to_new_file)
         chapter_metadata = generate_chapter_metadata(merged_chapters)
         apply_chapter_metadata(video_path, output_path, chapter_metadata)
 
         updated_chapters = get_video_chapters(output_path)
-        
+        pt(updated_chapters)
+
         results.append({
             "video_name": video_name,
             "output_path": output_path,
             "updated_chapters": updated_chapters
         })
-    # pt(list_of_initial_chapters)
-    return results
 
+        pt.c('==========================================================================')
+    return results
 
 
 def test_marking_of_videos():
@@ -317,25 +333,27 @@ def test_marking_of_videos():
     video_paths = get_video_paths_from_series_dict(series)
     
     frame_based_results = mark_videos(video_based_frame_sequences, video_paths, prefix='__cut_frames_')
-    for frame_result in frame_based_results:
-        print_metadata_for_videos_path(frame_result['output_path'], editions=True, all_metadata=False)
-        break
+    # for frame_result in frame_based_results:
+    #     print_metadata_for_videos_path(frame_result['output_path'], editions=True, all_metadata=False)
+    #     break
     
     frame_rates = get_frame_rates_for_videos(video_paths)
     video_based_timestamp_sequences = convert_sequences_of_frames_to_timestamps(video_based_frame_sequences, frame_rates)
-    timestamp_based_results = mark_videos(video_based_timestamp_sequences, video_paths, prefix='__cut_timestamps_')
+    timestamp_based_results = mark_videos(video_based_timestamp_sequences, video_paths, prefix='__cut_timestamps_', overwrite_existing_file=False)
+    
+    pt(frame_based_results, timestamp_based_results)
     # pt.ex()
     
-    for timestamp_result in timestamp_based_results:
-        print_metadata_for_videos_path(timestamp_result['output_path'], editions=True, all_metadata=False)
-        break
+    # for timestamp_result in timestamp_based_results:
+    #     print_metadata_for_videos_path(timestamp_result['output_path'], editions=True, all_metadata=False)
+    #     break
         
-    pt(video_based_frame_sequences, video_based_timestamp_sequences)
+    # pt(video_based_frame_sequences, video_based_timestamp_sequences)
 
-    pt(1)
-    print_metadata_for_videos_path(frame_based_results[0]['output_path'], editions=False, all_metadata=True)
-    pt(2)
-    print_metadata_for_videos_path(timestamp_based_results[0]['output_path'], editions=False, all_metadata=True)
+    # pt(1)
+    # print_metadata_for_videos_path(frame_based_results[0]['output_path'], editions=False, all_metadata=True)
+    # pt(2)
+    # print_metadata_for_videos_path(timestamp_based_results[0]['output_path'], editions=False, all_metadata=True)
 if __name__ == "__main__":
 
     test_marking_of_videos()
