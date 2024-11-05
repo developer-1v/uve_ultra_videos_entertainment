@@ -128,41 +128,6 @@ def determine_output_path(video_path, output_to_new_file):
     else:
         return video_path  # Overwrite the original file
 
-def generate_chapter_metadata(existing_chapters):
-    """
-    Applies chapter metadata to a video file using ffmpeg.
-    
-    Args:
-    video_path (str): Path to the video file.
-    existing_chapters (list of dicts): List of chapter dictionaries with 'start_time', 'end_time', 'id', 'enabled', and 'skip' keys.
-    output_to_new_file (bool): Flag to determine if the metadata should be applied to a new file or overwrite the existing one.
-    """
-    # Edition entry to set chapters as default and ordered
-    edition_entry = (
-        "[EDITION_ENTRY]\n"
-        "EDITION_FLAG_DEFAULT=1\n"
-        "EDITION_FLAG_ORDERED=1\n"
-    )
-    
-    # Generate chapter metadata entries
-    chapter_entries = []
-    for chapter in existing_chapters:
-        chapter_entry = (
-            "[CHAPTER]\n"
-            f"TIMEBASE=1/1000\n"
-            f"START={int(float(chapter['start_time']))}\n"
-            f"END={int(float(chapter['end_time']))}\n"
-            f"title={chapter['id']}\n"
-            f"enabled={int(chapter['enabled'])}\n"
-            f"skip={int(chapter['skip'])}\n"
-        )
-        chapter_entries.append(chapter_entry)
-    
-    # Combine edition entry with all chapter entries
-    chapter_metadata = edition_entry + ';'.join(chapter_entries)
-    
-    return chapter_metadata
-
 def apply_chapter_metadata(input_video_path, output_video_path, chapters_metadata):
     try:
         ffmpeg.input(input_video_path) \
@@ -210,6 +175,41 @@ def get_video_paths_from_series_dict(series_dict):
                 video_name = os.path.basename(path)
                 video_paths[video_name] = path
     return video_paths
+
+def generate_chapter_metadata(existing_chapters):
+    """
+    Applies chapter metadata to a video file using ffmpeg.
+    
+    Args:
+    video_path (str): Path to the video file.
+    existing_chapters (list of dicts): List of chapter dictionaries with 'start_time', 'end_time', 'id', 'enabled', and 'skip' keys.
+    output_to_new_file (bool): Flag to determine if the metadata should be applied to a new file or overwrite the existing one.
+    """
+    # Edition entry to set chapters as default and ordered
+    edition_entry = (
+        "[EDITION_ENTRY]\n"
+        "EDITION_FLAG_DEFAULT=1\n"
+        "EDITION_FLAG_ORDERED=1\n"
+    )
+    
+    # Generate chapter metadata entries
+    chapter_entries = []
+    for chapter in existing_chapters:
+        chapter_entry = (
+            "[CHAPTER]\n"
+            f"TIMEBASE=1/1000\n"
+            f"START={int(float(chapter['start_time']))}\n"
+            f"END={int(float(chapter['end_time']))}\n"
+            f"title={chapter['id']}\n"
+            f"enabled={int(chapter['enabled'])}\n"
+            f"skip={int(chapter['skip'])}\n"
+        )
+        chapter_entries.append(chapter_entry)
+    
+    # Combine edition entry with all chapter entries
+    chapter_metadata = edition_entry + ';'.join(chapter_entries)
+    
+    return chapter_metadata
 
 def mark_videos(video_based_sequences, video_paths, prefix='_cut_', output_to_new_file=True, enabled=False):
     results = []

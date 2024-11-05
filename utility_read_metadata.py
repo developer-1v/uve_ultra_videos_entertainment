@@ -59,7 +59,7 @@ def print_metadata_for_videos_path(path, editions, all_metadata):
         for video in videos:
             video_path = os.path.join(path, video)
             print_metadata(video_path, editions, all_metadata)
-            pt.ex()
+            # pt.ex()
     elif os.path.isfile(path):
         print_metadata(path, editions, all_metadata)
     else:
@@ -67,8 +67,8 @@ def print_metadata_for_videos_path(path, editions, all_metadata):
 
 if __name__ == "__main__":
     videos_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test'
-    editions = False
-    all_metadata = True
+    editions = True
+    all_metadata = False
     print_metadata_for_videos_path(videos_path, editions, all_metadata)
 
 
