@@ -73,23 +73,6 @@ def get_video_chapters(video_path, edition_name=None):
     #     pt.ex()
     return chapters
 
-def merge_chapters(existing_chapters, new_chapters):
-    combined_chapters = existing_chapters + new_chapters
-    
-    def get_start_time(chapter):
-        pt(chapter)
-        try:
-            pt(chapter['start_time'])
-            return float(chapter['start_time'])
-        except Exception as e:
-            pt.c(e)
-            pt(chapter['START'])
-            return float(chapter['START'])
-    
-    combined_chapters.sort(key=get_start_time)
-    
-    return combined_chapters
-
 def find_matching_video_path(series_dict, video_name):
     for series_name, nested_dict in series_dict.items():
         for sub_series_name, video_paths in nested_dict.items():
@@ -143,28 +126,9 @@ def create_clips_to_play(sequences_to_cut):
 
 def convert_frames_to_timestamps(start_frame, end_frame, frame_rate):
     """Converts frame numbers to timestamps in milliseconds."""
-    start_time = calculate_time_in_ms(start_frame, frame_rate)
-    end_time = calculate_time_in_ms(end_frame, frame_rate)
-    return start_time, end_time
-
-def create_chapter_entries(sequences, prefix, start_index, enabled, skip_chapters):
-    """Creates chapter entries with given prefix ('__cut_' or '__play_')"""
-    chapters = []
-    current_index = start_index
-    
-    for sequence_name, time_frame in sequences.items():
-        start_time, end_time = time_frame  # Assume sequences are already in timestamp format
-        
-        chapters.append({
-            'id': f'{prefix}{current_index}',
-            'start_time': str(start_time),
-            'end_time': str(end_time),
-            'enabled': enabled,
-            'skip': skip_chapters
-        })
-        current_index += 1
-    
-    return sorted(chapters, key=lambda x: int(x['start_time']))
+    START = calculate_time_in_ms(start_frame, frame_rate)
+    END = calculate_time_in_ms(end_frame, frame_rate)
+    return START, END
 
 def determine_output_path(video_path, output_to_new_file):
     if output_to_new_file:
@@ -191,8 +155,8 @@ def convert_sequences_of_frames_to_timestamps(video_based_frame_sequences, frame
             timestamp_sequences = {}
             for sequence_name, frames in sequences.items():
                 start_frame, end_frame = frames
-                start_time, end_time = convert_frames_to_timestamps(start_frame, end_frame, frame_rate)
-                timestamp_sequences[sequence_name] = (start_time, end_time)
+                START, END = convert_frames_to_timestamps(start_frame, end_frame, frame_rate)
+                timestamp_sequences[sequence_name] = (START, END)
             video_based_timestamp_sequences[video_name] = timestamp_sequences
         else:
             print(f"No frame rate available for {video_name}")
@@ -220,14 +184,59 @@ def get_video_paths_from_series_dict(series_dict):
                 video_paths[video_name] = path
     return video_paths
 
+# Define constants for chapter keys
+CHAPTER_KEYS = {
+    'id': 'id',
+    'START': 'START',
+    'END': 'END',
+    'enabled': 'enabled',
+    'skip': 'skip'
+}
+
+def merge_chapters(existing_chapters, new_chapters):
+    combined_chapters = existing_chapters + new_chapters
+    
+    def get_START(chapter):
+        if 'START' not in chapter:
+            print(f"Warning: 'START' not found in chapter: {chapter}")
+        return float(chapter.get('START', 0))
+        # pt(chapter)
+        # try:
+        #     pt(chapter['START'])
+        #     return float(chapter['START'])
+        # except Exception as e:
+        #     pt.c(e)
+        #     pt(chapter['START'])
+        #     return float(chapter['START'])
+    
+    combined_chapters.sort(key=get_START)
+    
+    return combined_chapters
+
+def create_chapter_entries(sequences, prefix, start_index, enabled, skip_chapters):
+    """Creates chapter entries with given prefix ('__cut_' or '__play_')"""
+    chapters = []
+    current_index = start_index
+    
+    for sequence_name, time_frame in sequences.items():
+        START, END = time_frame  # Assume sequences are already in timestamp format
+        
+        chapters.append({
+            'id': f'{prefix}{current_index}',
+            'TIMEBASE': '1/1000',  # Consistent timebase for all entries
+            'START': START,  # Store as numeric
+            'END': END,      # Store as numeric
+            'title': f'{prefix}{current_index}',
+            'enabled': enabled,
+            'skip': skip_chapters
+        })
+        current_index += 1
+    
+    return sorted(chapters, key=lambda x: x['START'])
+
 def generate_chapter_metadata(existing_chapters):
     """
-    Applies chapter metadata to a video file using ffmpeg.
-    
-    Args:
-    video_path (str): Path to the video file.
-    existing_chapters (list of dicts): List of chapter dictionaries with 'start_time', 'end_time', 'id', 'enabled', and 'skip' keys.
-    output_to_new_file (bool): Flag to determine if the metadata should be applied to a new file or overwrite the existing one.
+    Converts chapter entries into a metadata string for ffmpeg.
     """
     # Edition entry to set chapters as default and ordered
     edition_entry = (
@@ -242,16 +251,16 @@ def generate_chapter_metadata(existing_chapters):
         chapter_entry = (
             "[CHAPTER]\n"
             f"TIMEBASE=1/1000\n"
-            f"START={int(float(chapter['start_time']))}\n"
-            f"END={int(float(chapter['end_time']))}\n"
-            f"title={chapter['id']}\n"
+            f"START={int(chapter['START'])}\n"  # Convert to int directly
+            f"END={int(chapter['END'])}\n"      # Convert to int directly
+            f"title={chapter['title']}\n"
             f"enabled={int(chapter['enabled'])}\n"
             f"skip={int(chapter['skip'])}\n"
         )
         chapter_entries.append(chapter_entry)
     
     # Combine edition entry with all chapter entries
-    chapter_metadata = edition_entry + ';'.join(chapter_entries)
+    chapter_metadata = edition_entry + '\n'.join(chapter_entries)  # Ensure proper separation
     
     return chapter_metadata
 
