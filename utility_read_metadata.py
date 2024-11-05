@@ -67,8 +67,8 @@ def print_metadata_for_videos_path(path, editions, all_metadata):
 
 if __name__ == "__main__":
     videos_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test'
-    editions = True
-    all_metadata = False
+    editions = False
+    all_metadata = True
     print_metadata_for_videos_path(videos_path, editions, all_metadata)
 
 
