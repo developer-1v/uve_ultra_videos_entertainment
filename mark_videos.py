@@ -312,9 +312,9 @@ def test_marking_of_videos():
     
     frame_based_results = mark_videos(video_based_frame_sequences, video_paths, prefix='__cut_frames_')
     
-    frame_rates = get_frame_rates_for_videos(video_paths)
-    video_based_timestamp_sequences = convert_sequences_of_frames_to_timestamps(video_based_frame_sequences, frame_rates)
-    timestamp_based_results = mark_videos(video_based_timestamp_sequences, video_paths, prefix='__cut_timestamps_', overwrite_existing_file=False)
+    # frame_rates = get_frame_rates_for_videos(video_paths)
+    # video_based_timestamp_sequences = convert_sequences_of_frames_to_timestamps(video_based_frame_sequences, frame_rates)
+    # timestamp_based_results = mark_videos(video_based_timestamp_sequences, video_paths, prefix='__cut_timestamps_', overwrite_existing_file=False)
     
     print_metadata_for_videos_path(series_path, editions_only=True)
 

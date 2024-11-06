@@ -140,7 +140,6 @@ class VideoPlayer(QMainWindow):
         button.setAutoRepeatDelay(500)  # Initial delay in ms
         button.clicked.connect(slot_function)
 
-
     def update_labels(self, position):
         # Calculate time components
         milliseconds = (position % 1000)
@@ -154,7 +153,6 @@ class VideoPlayer(QMainWindow):
         current_frame = int(position / (1000 / self.frame_rate))
         total_frames = int(self.mediaPlayer.duration() / (1000 / self.frame_rate))
         self.controlPanel.frameNumberValueLabel.setText(f"{current_frame}/{total_frames}")
-
 
     def toggle_play_pause(self):
         if self.mediaPlayer.playbackState() == QMediaPlayer.PlayingState:
@@ -187,9 +185,6 @@ class VideoPlayer(QMainWindow):
         self.mediaPlayer.setPosition(current_position - frame_duration)
         self.mediaPlayer.pause()
 
-
-
-
     def next_clip(self):
         # Logic to jump to the next video clip
         pass
@@ -211,7 +206,7 @@ class VideoPlayer(QMainWindow):
         self.controlPanel.timelineSlider.setValue(position)
 
 if __name__ == "__main__":
-    video_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test\_s01e01_40.mp4'
+    video_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test\marked_s01e01_40.mp4'
     app = QApplication(sys.argv)
     player = VideoPlayer(video_path)
     player.resize(800, 600)
