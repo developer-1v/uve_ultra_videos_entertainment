@@ -13,19 +13,37 @@ class ChapterOverlay(QWidget):
         ]
         self.current_frame = 0
         self.set_transparent_overlay()
+        self.show()  # Ensure the widget is shown
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        print("Overlay shown")
+
+    def hideEvent(self, event):
+        super().hideEvent(event)
+        print("Overlay hidden")
 
     def set_transparent_overlay(self):
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setAutoFillBackground(True)
+        self.setAutoFillBackground(False)  # Ensure background is not filled
 
     def paintEvent(self, event):
+        print(f"Overlay size: {self.size()}, position: {self.pos()}")
+        super().paintEvent(event)
         painter = QPainter(self)
-        painter.setBrush(QColor(255, 0, 0, 128))  # Red with 50% opacity
-        painter.setPen(Qt.NoPen)
+        painter.setBrush(QColor(255, 0, 0, 128))
+        painter.drawRect(self.rect())
+        painter.fillRect(self.rect(), QColor(255, 0, 0, 128))
+        
         for chapter in self.chapters:
+            print(f"Checking chapter: {chapter}")  # Debugging statement
             if chapter['start_frame'] <= self.current_frame <= chapter['end_frame']:
+                print("Drawing rectangle")  # Debugging statement
                 painter.drawRect(self.rect())  # Draw overlay
                 break
+        else:
+            print("Not in any chapter")  # Debugging statement
+            painter.fillRect(self.rect(), QColor(0, 0, 0, 0))  # Clear the overlay if not in chapter
 
     def update_frame(self, frame_number):
         self.current_frame = frame_number

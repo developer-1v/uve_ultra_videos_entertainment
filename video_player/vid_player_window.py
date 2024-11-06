@@ -98,7 +98,7 @@ class VideoPlayer(QMainWindow):
 
     def initialize_ui(self):
         # Initialize UI components
-        self.videoWidget = QVideoWidget()
+        self.videoWidget = QVideoWidget(self)
         self.controlPanel = ControlPanel(self)
         self.controlPanel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
         self.videoWidget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
@@ -109,9 +109,12 @@ class VideoPlayer(QMainWindow):
         layout.addWidget(self.videoWidget)
         layout.addWidget(self.controlPanel)
         widget.setLayout(layout)
-
-        self.chapterOverlay = ChapterOverlay(self.videoWidget)  # Create an instance of ChapterOverlay
-        # self.chapterOverlay.hide()  # Initially hide the overlay
+        
+        ## Transparent Overlay
+        self.chapterOverlay = ChapterOverlay(self.videoWidget)
+        self.chapterOverlay.show()  # Show immediately for testing
+        self.chapterOverlay.raise_()  # Explicitly bring to front
+        self.chapterOverlay.setAttribute(Qt.WA_TransparentForMouseEvents)  # Ensure clicks pass through
 
 
 
@@ -212,7 +215,6 @@ class VideoPlayer(QMainWindow):
 
     def update_slider_position(self, position):
         self.controlPanel.timelineSlider.setValue(position)
-    # Update the seek_video method to sync the slider with the video timeline
 
     def seek_video(self, position):
         self.mediaPlayer.setPosition(position)
@@ -222,7 +224,7 @@ class VideoPlayer(QMainWindow):
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self.chapterOverlay.setGeometry(self.videoWidget.geometry())
-        
+
 if __name__ == "__main__":
     video_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test\marked__s01e01_40.mp4'
     app = QApplication(sys.argv)
