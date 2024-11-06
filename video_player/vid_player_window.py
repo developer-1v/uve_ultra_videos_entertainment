@@ -24,7 +24,7 @@ from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtCore import QUrl, Qt
 import cv2
-
+from process_chapters import ChapterOverlay
 class ControlPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -110,6 +110,12 @@ class VideoPlayer(QMainWindow):
         layout.addWidget(self.controlPanel)
         widget.setLayout(layout)
 
+        self.chapterOverlay = ChapterOverlay(self.videoWidget)  # Create an instance of ChapterOverlay
+        # self.chapterOverlay.hide()  # Initially hide the overlay
+
+
+
+
     def setup_media_player(self):
         self.mediaPlayer = QMediaPlayer(None)
         videoUrl = QUrl.fromLocalFile(self.video_path)
@@ -122,6 +128,8 @@ class VideoPlayer(QMainWindow):
         cap = cv2.VideoCapture(self.video_path)
         self.frame_rate = cap.get(cv2.CAP_PROP_FPS)
         cap.release()
+
+        self.mediaPlayer.positionChanged.connect(self.update_labels)  
 
     def configure_buttons(self):
         # Configure buttons and connect signals
@@ -154,6 +162,12 @@ class VideoPlayer(QMainWindow):
         total_frames = int(self.mediaPlayer.duration() / (1000 / self.frame_rate))
         self.controlPanel.frameNumberValueLabel.setText(f"{current_frame}/{total_frames}")
 
+        if self.chapterOverlay.is_in_chapter(current_frame, self.chapterOverlay.chapters):
+            self.chapterOverlay.show()
+            self.chapterOverlay.update_frame(current_frame)
+        else:
+            self.chapterOverlay.hide()
+            
     def toggle_play_pause(self):
         if self.mediaPlayer.playbackState() == QMediaPlayer.PlayingState:
             self.controlPanel.playPauseButton.setText("Play")
@@ -205,8 +219,12 @@ class VideoPlayer(QMainWindow):
         # Sync the slider position with the video's current position
         self.controlPanel.timelineSlider.setValue(position)
 
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.chapterOverlay.setGeometry(self.videoWidget.geometry())
+        
 if __name__ == "__main__":
-    video_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test\marked_s01e01_40.mp4'
+    video_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test\marked__s01e01_40.mp4'
     app = QApplication(sys.argv)
     player = VideoPlayer(video_path)
     player.resize(800, 600)
