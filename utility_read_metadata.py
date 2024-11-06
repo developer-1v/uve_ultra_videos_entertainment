@@ -35,7 +35,7 @@ def extract_editions(metadata):
                     chapter_lines = chapter.split('\n')
                     chapter_dict = {}
                     for line in chapter_lines:
-                        if '=' in line:  # Check if the line contains '='
+                        if '=' in line:
                             k, v = line.split('=', 1)
                             chapter_dict[k.strip()] = v.strip()
                     
