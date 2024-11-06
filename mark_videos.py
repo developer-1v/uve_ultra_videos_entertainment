@@ -21,12 +21,6 @@ def video_based_sequences_restructurer(sequences):
     pt(video_based_dict)
     return video_based_dict
 
-import subprocess
-import json
-
-import subprocess
-import json
-
 def get_video_chapters(video_path, edition_name=None):
     cmd = [
         'ffprobe', 
@@ -53,8 +47,8 @@ def get_video_chapters(video_path, edition_name=None):
         if edition_name and edition_name not in edition_data:
             continue
         
-        # Split the edition data into individual chapters
-        chapter_entries = edition_data.split(';')
+        # Split the edition data into individual chapters using double newline as delimiter
+        chapter_entries = edition_data.split('\n\n')
         
         for chapter_entry in chapter_entries:
             if '[CHAPTER]' in chapter_entry:
@@ -69,8 +63,6 @@ def get_video_chapters(video_path, edition_name=None):
                     chapters.append(chapter_dict)
     
     pt(os.path.basename(video_path), chapters)
-    # if len(chapters) != 0:
-    #     pt.ex()
     return chapters
 
 def find_matching_video_path(series_dict, video_name):
@@ -264,12 +256,6 @@ def generate_chapter_metadata(existing_chapters):
     
     return chapter_metadata
 
-def get_initial_chapters(video_path):
-    """Retrieve initial chapters from a video."""
-    initial_chapters = get_video_chapters(video_path)
-    pt(initial_chapters)
-    return initial_chapters
-
 def mark_videos(video_based_sequences, video_paths, prefix='__cut_', output_to_new_file=True, overwrite_existing_file=True, enabled=False):
     results = []
     for video_name, sequences in video_based_sequences.items():
@@ -288,16 +274,17 @@ def mark_videos(video_based_sequences, video_paths, prefix='__cut_', output_to_n
 
         if os.path.exists(output_path) and not overwrite_existing_file:
             # If the file exists and we should not overwrite, get chapters from the existing file
-            initial_chapters = get_initial_chapters(output_path)
+            initial_chapters = get_video_chapters(output_path)
             pt(initial_chapters)
         else:
             # Otherwise, get chapters from the original video
-            initial_chapters = get_initial_chapters(video_path)
+            initial_chapters = get_video_chapters(video_path)
             pt(initial_chapters)
 
         new_chapters = create_chapter_entries(sequences, prefix, len(initial_chapters) + 1, enabled, False)
         merged_chapters = merge_chapters(initial_chapters, new_chapters)
-
+        pt(merged_chapters)
+        
         chapter_metadata = generate_chapter_metadata(merged_chapters)
         apply_chapter_metadata(video_path, output_path, chapter_metadata)
 
@@ -343,7 +330,7 @@ def test_marking_of_videos():
     
     frame_based_results = mark_videos(video_based_frame_sequences, video_paths, prefix='__cut_frames_')
     # for frame_result in frame_based_results:
-    #     print_metadata_for_videos_path(frame_result['output_path'], editions=True, all_metadata=False)
+    #     print_metadata_for_videos_path(frame_result['output_path'], editions=True)
     #     break
     
     frame_rates = get_frame_rates_for_videos(video_paths)
@@ -354,15 +341,15 @@ def test_marking_of_videos():
     # pt.ex()
     
     # for timestamp_result in timestamp_based_results:
-    #     print_metadata_for_videos_path(timestamp_result['output_path'], editions=True, all_metadata=False)
+    #     print_metadata_for_videos_path(timestamp_result['output_path'], editions=True)
     #     break
         
     # pt(video_based_frame_sequences, video_based_timestamp_sequences)
 
     # pt(1)
-    # print_metadata_for_videos_path(frame_based_results[0]['output_path'], editions=False, all_metadata=True)
+    # print_metadata_for_videos_path(frame_based_results[0]['output_path'], editions=False)
     # pt(2)
-    # print_metadata_for_videos_path(timestamp_based_results[0]['output_path'], editions=False, all_metadata=True)
+    # print_metadata_for_videos_path(timestamp_based_results[0]['output_path'], editions=False)
 if __name__ == "__main__":
 
     test_marking_of_videos()
