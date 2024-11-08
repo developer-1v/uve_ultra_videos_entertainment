@@ -1,53 +1,52 @@
-import cv2
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QPainter
-from PySide6.QtWidgets import QWidget
 from print_tricks import pt
 
-class ChapterOverlay(QWidget):
+from PySide6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsRectItem
+from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QColor, QPen, QBrush
+
+class ChapterOverlay(QGraphicsView):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.chapters = [
-            {'start_frame': 3, 'end_frame': 33},
-            {'start_frame': 55, 'end_frame': 88}
-        ]
-        self.current_frame = 0
-        self.set_transparent_overlay()
-        self.show()  # Ensure the widget is shown
-
-    def showEvent(self, event):
-        super().showEvent(event)
-        print("Overlay shown")
-
-    def hideEvent(self, event):
-        super().hideEvent(event)
-        print("Overlay hidden")
-
-    def set_transparent_overlay(self):
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setAutoFillBackground(False)  # Ensure background is not filled
-
-    def paintEvent(self, event):
-        print(f"Overlay size: {self.size()}, position: {self.pos()}")
-        super().paintEvent(event)
-        painter = QPainter(self)
-        painter.setBrush(QColor(255, 0, 0, 128))
-        painter.drawRect(self.rect())
-        painter.fillRect(self.rect(), QColor(255, 0, 0, 128))
-        
-        for chapter in self.chapters:
-            print(f"Checking chapter: {chapter}")  # Debugging statement
-            if chapter['start_frame'] <= self.current_frame <= chapter['end_frame']:
-                print("Drawing rectangle")  # Debugging statement
-                painter.drawRect(self.rect())  # Draw overlay
-                break
-        else:
-            print("Not in any chapter")  # Debugging statement
-            painter.fillRect(self.rect(), QColor(0, 0, 0, 0))  # Clear the overlay if not in chapter
-
-    def update_frame(self, frame_number):
-        self.current_frame = frame_number
-        self.update()  # Trigger a repaint
+        self.setup_scene()
+        self.setup_view()
+        self.setup_video_item()
+        self.setup_overlay()
+    
+    def setup_scene(self):
+        self.scene = QGraphicsScene(self)
+        self.setScene(self.scene)
+    
+    def setup_view(self):
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setViewportMargins(0, 0, 0, 0)
+        self.setFrameStyle(0)
+    
+    def setup_video_item(self):
+        self.videoItem = QGraphicsVideoItem()
+        self.scene.addItem(self.videoItem)
+    
+    def setup_overlay(self):
+        self.overlay = QGraphicsRectItem(self.videoItem.boundingRect())
+        self.overlay.setBrush(QBrush(QColor(255, 0, 0, 128)))
+        self.overlay.setPen(QPen(Qt.NoPen))
+        self.scene.addItem(self.overlay)
+        self.overlay.setZValue(1)
+        self.overlay.hide()
+    
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.setSceneRect(0, 0, self.width(), self.height())
+        self.videoItem.setSize(self.size())
+        self.overlay.setRect(self.videoItem.boundingRect())
+    
+    def show_overlay(self):
+        self.overlay.show()
+        self.overlay.setRect(self.videoItem.boundingRect())
+    
+    def hide_overlay(self):
+        self.overlay.hide()
 
     @staticmethod
     def is_in_chapter(current_frame, chapters):

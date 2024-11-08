@@ -97,33 +97,30 @@ class VideoPlayer(QMainWindow):
         self.configure_buttons()
 
     def initialize_ui(self):
-        # Initialize UI components
-        self.videoWidget = QVideoWidget(self)
+        # Replace QVideoWidget with CustomVideoWidget
+        self.chapter_overlay_widget = ChapterOverlay(self)
         self.controlPanel = ControlPanel(self)
         self.controlPanel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
-        self.videoWidget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        self.chapter_overlay_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
 
         widget = QWidget(self)
         self.setCentralWidget(widget)
         layout = QVBoxLayout()
-        layout.addWidget(self.videoWidget)
+        layout.addWidget(self.chapter_overlay_widget)
         layout.addWidget(self.controlPanel)
         widget.setLayout(layout)
         
-        ## Transparent Overlay
-        self.chapterOverlay = ChapterOverlay(self.videoWidget)
-        self.chapterOverlay.show()  # Show immediately for testing
-        self.chapterOverlay.raise_()  # Explicitly bring to front
-        self.chapterOverlay.setAttribute(Qt.WA_TransparentForMouseEvents)  # Ensure clicks pass through
-
-
-
+        # Remove the old overlay code since it's now handled by CustomVideoWidget
+        self.chapters = [
+            {'start_frame': 3, 'end_frame': 33},
+            {'start_frame': 55, 'end_frame': 88}
+        ]
 
     def setup_media_player(self):
         self.mediaPlayer = QMediaPlayer(None)
         videoUrl = QUrl.fromLocalFile(self.video_path)
         self.mediaPlayer.setSource(videoUrl)
-        self.mediaPlayer.setVideoOutput(self.videoWidget)
+        self.mediaPlayer.setVideoOutput(self.chapter_overlay_widget.videoItem)  # Update to use videoItem
         self.mediaPlayer.durationChanged.connect(self.update_slider_max)
         self.mediaPlayer.positionChanged.connect(self.update_slider_position)
         self.mediaPlayer.positionChanged.connect(self.update_labels)
@@ -162,15 +159,18 @@ class VideoPlayer(QMainWindow):
 
         # Calculate frame number
         current_frame = int(position / (1000 / self.frame_rate))
-        total_frames = int(self.mediaPlayer.duration() / (1000 / self.frame_rate))
-        self.controlPanel.frameNumberValueLabel.setText(f"{current_frame}/{total_frames}")
+        if any(chapter['start_frame'] <= current_frame <= chapter['end_frame'] 
+              for chapter in self.chapters):
+            self.chapter_overlay_widget.show_overlay()
+        else:
+            self.chapter_overlay_widget.hide_overlay()
 
         if self.chapterOverlay.is_in_chapter(current_frame, self.chapterOverlay.chapters):
             self.chapterOverlay.show()
             self.chapterOverlay.update_frame(current_frame)
         else:
             self.chapterOverlay.hide()
-            
+
     def toggle_play_pause(self):
         if self.mediaPlayer.playbackState() == QMediaPlayer.PlayingState:
             self.controlPanel.playPauseButton.setText("Play")
@@ -223,7 +223,7 @@ class VideoPlayer(QMainWindow):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self.chapterOverlay.setGeometry(self.videoWidget.geometry())
+        self.chapter_overlay_widget.setGeometry(self.chapter_overlay_widget.geometry())
 
 if __name__ == "__main__":
     video_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test\marked__s01e01_40.mp4'

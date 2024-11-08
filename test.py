@@ -18,6 +18,9 @@ class VideoPlayer(QMainWindow):
         self.view = QGraphicsView(self.scene)
         self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.view.setViewportMargins(0, 0, 0, 0)
+        self.view.setFrameStyle(0)
+        
         
         # Create video item for graphics scene
         self.videoItem = QGraphicsVideoItem()
@@ -49,15 +52,26 @@ class VideoPlayer(QMainWindow):
         self.mediaPlayer.play()
         
     def update_overlay(self, position):
-        frame = int(position / (1000 / 30))  # Assuming 30 fps
-        if 25 <= frame <= 75:
-            self.overlay.show()
-        else:
-            self.overlay.hide()
+        duration = self.mediaPlayer.duration()
+        if duration > 0:
+            # Calculate normalized position (0 to duration)
+            normalized_position = position % duration
+            
+            # Convert to frames (assuming 30 fps)
+            frame = int((normalized_position / duration) * (30 * (duration/1000)))
+            
+            # Show overlay between frames 25-75 for each loop
+            normalized_frame = frame % (30 * (duration/1000))  # Normalize frame count to one loop
+            if 25 <= normalized_frame <= 75:
+                self.overlay.show()
+                self.overlay.setRect(self.videoItem.boundingRect())
+            else:
+                self.overlay.hide()
     
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self.view.setSceneRect(QRectF(self.view.rect()))
+        # Fit scene to view without margins
+        self.view.setSceneRect(0, 0, self.view.width(), self.view.height())
         self.videoItem.setSize(self.view.size())
         self.overlay.setRect(self.videoItem.boundingRect())
 
