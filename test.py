@@ -1,70 +1,65 @@
 import sys
-from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget,
+                              QGraphicsScene, QGraphicsView, QGraphicsRectItem)
 from PySide6.QtMultimedia import QMediaPlayer
-from PySide6.QtMultimediaWidgets import QVideoWidget
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QPainter, QColor
+from PySide6.QtMultimediaWidgets import QGraphicsVideoItem
+from PySide6.QtCore import Qt, QRectF
+from PySide6.QtGui import QColor, QPen, QBrush
 
-class ChapterOverlay(QWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.start_frame = 25
-        self.end_frame = 75
-        self.current_frame = 0
-        self.frame_rate = 30
-        # Add this line to ensure the overlay can receive paint events
-        self.setAttribute(Qt.WA_TransparentForMouseEvents)
 
-    def set_transparent_overlay(self):
-        self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setAutoFillBackground(False)
-
-    def paintEvent(self, event):
-        if self.start_frame <= self.current_frame <= self.end_frame:
-            painter = QPainter(self)
-            painter.setBrush(QColor(255, 0, 0, 222))  # Semi-transparent red
-            painter.setPen(Qt.NoPen)
-            painter.drawRect(self.rect())
-            painter.fillRect(self.rect(), QColor(255, 0, 0, 128))
-
-    def update_frame(self, position):
-        self.current_frame = int(position / (1000 / self.frame_rate))
-        self.update()  # Trigger a repaint
 
 class VideoPlayer(QMainWindow):
     def __init__(self, video_path):
         super().__init__()
         self.setWindowTitle("Video Player with Overlay")
-        self.videoWidget = QVideoWidget(self)
+        
+        # Create graphics scene and view
+        self.scene = QGraphicsScene(self)
+        self.view = QGraphicsView(self.scene)
+        self.view.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.view.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        
+        # Create video item for graphics scene
+        self.videoItem = QGraphicsVideoItem()
+        self.scene.addItem(self.videoItem)
+        
+        # Create media player
         self.mediaPlayer = QMediaPlayer(self)
-        self.mediaPlayer.setVideoOutput(self.videoWidget)
-        # Updated to use QUrl for local file paths
+        self.mediaPlayer.setVideoOutput(self.videoItem)
         from PySide6.QtCore import QUrl
         self.mediaPlayer.setSource(QUrl.fromLocalFile(video_path))
-
-        self.chapterOverlay = ChapterOverlay(self.videoWidget)
-        self.chapterOverlay.setGeometry(self.videoWidget.geometry())
-        self.chapterOverlay.show()
-
-        # Move overlay creation after setting up the central widget
+        
+        # Create overlay rectangle
+        self.overlay = QGraphicsRectItem(self.videoItem.boundingRect())
+        self.overlay.setBrush(QBrush(QColor(255, 0, 0, 128)))
+        self.overlay.setPen(QPen(Qt.NoPen))
+        self.scene.addItem(self.overlay)
+        self.overlay.setZValue(1)  # Ensure overlay is above video
+        
+        # Set up the main window
         layout = QVBoxLayout()
-        layout.addWidget(self.videoWidget)
+        layout.addWidget(self.view)
         central_widget = QWidget()
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
-
-        self.chapterOverlay = ChapterOverlay(self)  # Change parent to self
-        self.chapterOverlay.setGeometry(self.videoWidget.geometry())
-        self.chapterOverlay.raise_()  # Ensure overlay is on top
-        self.chapterOverlay.show()
-
-        self.mediaPlayer.positionChanged.connect(self.chapterOverlay.update_frame)
-        self.mediaPlayer.setLoops(QMediaPlayer.Infinite)  # Set the media player to loop infinitely
+        
+        # Connect position updates
+        self.mediaPlayer.positionChanged.connect(self.update_overlay)
+        self.mediaPlayer.setLoops(QMediaPlayer.Infinite)
         self.mediaPlayer.play()
-
+        
+    def update_overlay(self, position):
+        frame = int(position / (1000 / 30))  # Assuming 30 fps
+        if 25 <= frame <= 75:
+            self.overlay.show()
+        else:
+            self.overlay.hide()
+    
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self.chapterOverlay.setGeometry(self.videoWidget.geometry())
+        self.view.setSceneRect(QRectF(self.view.rect()))
+        self.videoItem.setSize(self.view.size())
+        self.overlay.setRect(self.videoItem.boundingRect())
 
 if __name__ == "__main__":
     video_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test\marked__s01e01_40.mp4'
