@@ -97,7 +97,6 @@ class VideoPlayer(QMainWindow):
         self.configure_buttons()
 
     def initialize_ui(self):
-        # Replace QVideoWidget with CustomVideoWidget
         self.chapter_overlay_widget = ChapterOverlay(self)
         self.controlPanel = ControlPanel(self)
         self.controlPanel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
@@ -110,11 +109,10 @@ class VideoPlayer(QMainWindow):
         layout.addWidget(self.controlPanel)
         widget.setLayout(layout)
         
-        # Remove the old overlay code since it's now handled by CustomVideoWidget
-        self.chapters = [
-            {'start_frame': 3, 'end_frame': 33},
-            {'start_frame': 55, 'end_frame': 88}
-        ]
+        # self.chapters = [
+        #     {'start_frame': 3, 'end_frame': 33},
+        #     {'start_frame': 55, 'end_frame': 88}
+        # ]
 
     def setup_media_player(self):
         self.mediaPlayer = QMediaPlayer(None)
