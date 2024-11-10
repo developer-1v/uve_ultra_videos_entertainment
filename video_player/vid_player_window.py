@@ -24,7 +24,7 @@ from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtCore import QUrl, Qt
 import cv2
-from process_chapters import ChapterOverlay
+from process_chapters import ChapterOverlay, FrameProcessor
 class ControlPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -91,6 +91,7 @@ class VideoPlayer(QMainWindow):
     def __init__(self, video_path):
         super().__init__()
         self.video_path = video_path
+        self.frame_processor = FrameProcessor(video_path, prefix="__cut_frames_")
         self.setWindowTitle("Video Player")
         self.initialize_ui()
         self.setup_media_player()
@@ -155,19 +156,9 @@ class VideoPlayer(QMainWindow):
         timestamp = f"{int(hours):02}:{int(minutes):02}:{int(seconds):02}:{int(milliseconds):03}"
         self.controlPanel.timestampValueLabel.setText(timestamp)
 
-        # Calculate frame number
         current_frame = int(position / (1000 / self.frame_rate))
-        if any(chapter['start_frame'] <= current_frame <= chapter['end_frame'] 
-              for chapter in self.chapters):
-            self.chapter_overlay_widget.show_overlay()
-        else:
-            self.chapter_overlay_widget.hide_overlay()
+        self.frame_processor.update_overlay(current_frame, self.chapter_overlay_widget.overlay)  # Use FrameProcessor to manage overlay
 
-        if self.chapterOverlay.is_in_chapter(current_frame, self.chapterOverlay.chapters):
-            self.chapterOverlay.show()
-            self.chapterOverlay.update_frame(current_frame)
-        else:
-            self.chapterOverlay.hide()
 
     def toggle_play_pause(self):
         if self.mediaPlayer.playbackState() == QMediaPlayer.PlayingState:

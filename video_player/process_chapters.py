@@ -1,4 +1,5 @@
 from print_tricks import pt
+pt.easy_import()
 
 import bisect
 
@@ -59,16 +60,26 @@ class FrameProcessor:
     def __init__(self, video_path, prefix="__cut_frames_"):
         self.video_path = video_path
         self.metadata = read_metadata(video_path)
-        self.chapters = sorted(get_chapters_by_prefix(self.metadata, prefix), key=lambda x: x['START'])
-        self.current_chapter = None
-        # Create a list of start frames for binary search
+        
+        # Get chapters and convert START/END to integers
+        chapters = get_chapters_by_prefix(self.metadata, prefix)
+        for chapter in chapters:
+            chapter['START'] = int(chapter['START'])
+            chapter['END'] = int(chapter['END'])
+        
+        # Sort chapters by START time
+        self.chapters = sorted(chapters, key=lambda x: x['START'])
+        
+        # Create start_frames list after sorting
         self.start_frames = [chapter['START'] for chapter in self.chapters]
+        self.current_chapter = None
+
 
     def update_overlay(self, current_frame, overlay):
         """
         Update the overlay visibility based on the current frame using binary search.
         """
-        # Find the rightmost item less than or equal to current_frame
+        # Now both current_frame and self.start_frames contain integers
         idx = bisect.bisect_right(self.start_frames, current_frame) - 1
         if idx >= 0 and self.chapters[idx]['START'] <= current_frame <= self.chapters[idx]['END']:
             if self.current_chapter != self.chapters[idx]:
@@ -79,8 +90,7 @@ class FrameProcessor:
                 self.current_chapter = None
                 overlay.hide()
 
-
-if __name__ == "__main__":
-    video_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test\marked__s01e01_40.mp4'
-    frame_processor = FrameProcessor(video_path)
-    frame_processor.update_overlay(100, overlay)
+# if __name__ == "__main__":
+#     video_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test\marked__s01e01_40.mp4'
+#     frame_processor = FrameProcessor(video_path)
+#     frame_processor.update_overlay(100, overlay)
