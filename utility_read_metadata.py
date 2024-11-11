@@ -91,14 +91,15 @@ def get_chapters_by_prefix(metadata, prefix):
 
 
 if __name__ == "__main__":
-    videos_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test'
-    editions_only = True
+    # videos_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test'
+    videos_path = r'C:\Users\user\Downloads\_Tor\Chronicle.2012.Director.s.Cut.iTA.ENG.AC3.SUB.iTA.ENG.BluRay.1080p.x264.jeddak-MIRCrew.mkv'
+    editions_only = False
     print_metadata_for_videos_path(videos_path, editions_only)
     
     
-    video_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test\marked__s01e01_40.mp4'
-    metadata = read_metadata(video_path)
-    prefix = "__cut_frames_"
-    chapters_with_prefix = get_chapters_by_prefix(metadata, prefix)
-    for chapter in chapters_with_prefix:
-        rprint(chapter)
+    # video_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test\marked__s01e01_40.mkv'
+    # metadata = read_metadata(video_path)
+    # prefix = "__cut_frames_"
+    # chapters_with_prefix = get_chapters_by_prefix(metadata, prefix)
+    # for chapter in chapters_with_prefix:
+    #     rprint(chapter)

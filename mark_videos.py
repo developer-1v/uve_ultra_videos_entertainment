@@ -9,6 +9,13 @@ import subprocess
 import json
 import ffmpeg
 
+CHAPTER_KEYS = {
+    'id': 'id',
+    'START': 'START',
+    'END': 'END',
+    'enabled': 'enabled',
+    'skip': 'skip'
+}
 
 
 def video_based_sequences_restructurer(sequences):
@@ -120,9 +127,16 @@ def convert_frames_to_timestamps(start_frame, end_frame, frame_rate):
     END = calculate_time_in_ms(end_frame, frame_rate)
     return START, END
 
+# def determine_output_path(video_path, output_to_new_file):
+#     if output_to_new_file:
+#         return os.path.join(os.path.dirname(video_path), f"marked_{os.path.basename(video_path)}")
+#     else:
+#         return video_path  # Overwrite the original file
 def determine_output_path(video_path, output_to_new_file):
     if output_to_new_file:
-        return os.path.join(os.path.dirname(video_path), f"marked_{os.path.basename(video_path)}")
+        # Change extension to .mkv explicitly
+        base_name = os.path.splitext(os.path.basename(video_path))[0]
+        return os.path.join(os.path.dirname(video_path), f"marked_{base_name}.mkv")
     else:
         return video_path  # Overwrite the original file
 
@@ -172,14 +186,6 @@ def get_video_paths_from_series_dict(series_dict):
                 video_name = os.path.basename(path)
                 video_paths[video_name] = path
     return video_paths
-
-CHAPTER_KEYS = {
-    'id': 'id',
-    'START': 'START',
-    'END': 'END',
-    'enabled': 'enabled',
-    'skip': 'skip'
-}
 
 def merge_chapters(existing_chapters, new_chapters):
     combined_chapters = existing_chapters + new_chapters
