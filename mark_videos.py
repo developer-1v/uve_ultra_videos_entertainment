@@ -320,6 +320,8 @@ def test_marking_of_videos():
     # pt.ex()
     
     frame_based_results = mark_videos(video_based_frame_sequences, video_paths, prefix='__cut_frames_')
+    pt(series, video_based_frame_sequences, video_paths, frame_based_results)
+    pt.ex()
     
     # frame_rates = get_frame_rates_for_videos(video_paths)
     # video_based_timestamp_sequences = convert_sequences_of_frames_to_timestamps(video_based_frame_sequences, frame_rates)

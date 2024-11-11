@@ -1,0 +1,20 @@
+pt(series, video_based_frame_sequences, video_paths, frame_based_results) Length: 4 variables (Line :52, @process_series(), b_main.py) - 
+    >1>  series: (1 elements below) pt.size = 62 Bytes (estimated) - dict, Length: 1, (Line :52, @process_series(), b_main.py)
+       >  {'3_complete_vids_to_test': {'3_complete_vids_to_test': ['C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\_s01e01_40.mp4',
+       >  'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\_s01e02_40.mp4', 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\_s01e03_40.mp4',
+       >  'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\_s01e04_40.mp4', 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\aa.mp4']}}
+    ^ ^ ^ pt(series): (1 elements above this) pt.size = 62 Bytes (estimated) - dict, Length: 1, (Line :52, @process_series(), b_main.py)
+    >2>  video_based_frame_sequences: {'_s01e01_40.mp4': {'sequence 0': [0, 58], 'sequence 1': [58, 70], 'sequence 2': [70, 103]}, 'aa.mp4': {'sequence 0': [0, 58], 'sequence 1': [58, 70], 'sequence 2': [70, 103]}} - dict, Length: 2
+    >3>  video_paths: (5 elements below) pt.size = 62 Bytes (estimated) - dict, Length: 5, (Line :52, @process_series(), b_main.py)
+       >  {'_s01e01_40.mp4': 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\_s01e01_40.mp4', '_s01e02_40.mp4':
+       >  'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\_s01e02_40.mp4', '_s01e03_40.mp4': 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\_s01e03_40.mp4',
+       >  '_s01e04_40.mp4': 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\_s01e04_40.mp4', 'aa.mp4':
+       >  'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\aa.mp4'}
+    ^ ^ ^ pt(video_paths): (5 elements above this) pt.size = 62 Bytes (estimated) - dict, Length: 5, (Line :52, @process_series(), b_main.py)
+    >4>  frame_based_results: (2 elements below) pt.size = 62 Bytes (estimated) - list, Length: 2, (Line :52, @process_series(), b_main.py)
+       >  [{'video_name': '_s01e01_40.mp4', 'output_path': 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\marked__s01e01_40.mkv', 'updated_chapters': [{'EDITION_FLAG_ORDERED': '1', 'TIMEBASE': '1/1000', 'START': '0',
+       >  'END': '58', 'title': '__cut_frames_1', 'enabled': '0', 'skip': '0'}, {'TIMEBASE': '1/1000', 'START': '58', 'END': '70', 'title': '__cut_frames_2', 'enabled': '0', 'skip': '0'}, {'TIMEBASE': '1/1000', 'START': '70', 'END': '103', 'title': '__cut_frames_3', 'enabled': '0',
+       >  'skip': '0'}]}, {'video_name': 'aa.mp4', 'output_path': 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\marked_aa.mkv', 'updated_chapters': [{'EDITION_FLAG_ORDERED': '1', 'TIMEBASE': '1/1000', 'START': '0',
+       >  'END': '58', 'title': '__cut_frames_1', 'enabled': '0', 'skip': '0'}, {'TIMEBASE': '1/1000', 'START': '58', 'END': '70', 'title': '__cut_frames_2', 'enabled': '0', 'skip': '0'}, {'TIMEBASE': '1/1000', 'START': '70', 'END': '103', 'title': '__cut_frames_3', 'enabled': '0',
+       >  'skip': '0'}]}]
+    ^ ^ ^ pt(frame_based_results): (2 elements above this) pt.size = 62 Bytes (estimated) - list, Length: 2, (Line :52, @process_series(), b_main.py)

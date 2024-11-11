@@ -45,18 +45,18 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
             merged_w_extras, new_extras = merge_extras_into_sequences(merged, extras)
             possible_conflicting_sequences = merge_all_sequences(merged_w_extras)
             simplified_possible_conflicting_sequences, missing_frames = simplify_sequences(possible_conflicting_sequences)
-            video_based_sequences = mark_videos.video_based_sequences_restructurer(simplified_possible_conflicting_sequences)
+            video_based_frame_sequences = mark_videos.video_based_sequences_restructurer(simplified_possible_conflicting_sequences)
             video_paths = mark_videos.get_video_paths_from_series_dict(series)
-            pt(video_paths)
             # pt.ex()
-            frame_based_results = mark_videos.mark_videos(video_based_sequences, video_paths)
-            pt(frame_based_results)
-            run_vid_player(video_paths[1]) 
+            frame_based_results = mark_videos.mark_videos(video_based_frame_sequences, video_paths, prefix='__cut_frames_')
+            pt(series, video_based_frame_sequences, video_paths, frame_based_results)
+            pt.ex()
+            run_vid_player(video_paths[1])
             
             
             debug_print(
-                video_hashes, 
-                conflicting_frame_hashes, 
+                video_hashes,
+                conflicting_frame_hashes,
                 sorted_data,
                 merged,
                 extras,
@@ -64,7 +64,7 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
                 new_extras,
                 possible_conflicting_sequences,
                 simplified_possible_conflicting_sequences,
-                video_based_sequences,
+                video_based_frame_sequences,
                 test_full_vids=False,
                 print_data=False,
                 print_key_totals=False,
