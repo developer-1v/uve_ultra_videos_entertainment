@@ -17,6 +17,9 @@ def print_metadata(metadata, video_path, editions_only=False):
 
     if editions_only:
         editions = extract_editions(metadata)
+        
+        print('\n\n', video_path, '\n')
+        # rprint(editions)
         print_chapters(editions)
     else:
         rprint(video_path)

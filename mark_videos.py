@@ -132,6 +132,7 @@ def convert_frames_to_timestamps(start_frame, end_frame, frame_rate):
 #         return os.path.join(os.path.dirname(video_path), f"marked_{os.path.basename(video_path)}")
 #     else:
 #         return video_path  # Overwrite the original file
+
 def determine_output_path(video_path, output_to_new_file):
     if output_to_new_file:
         # Change extension to .mkv explicitly
@@ -315,6 +316,8 @@ def test_marking_of_videos():
     }
     
     video_paths = get_video_paths_from_series_dict(series)
+    pt(video_paths)
+    # pt.ex()
     
     frame_based_results = mark_videos(video_based_frame_sequences, video_paths, prefix='__cut_frames_')
     

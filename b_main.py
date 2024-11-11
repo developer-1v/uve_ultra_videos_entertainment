@@ -14,7 +14,7 @@ from merge_extras import merge_extras_into_sequences
 from merge_remaining_sequences import merge_all_sequences
 from debugging_module import debug_print
 from simplify_sequences import simplify_sequences
-from mark_videos import mark_videos, video_based_sequences_restructurer
+import mark_videos
 from video_player.video_player import run_vid_player
 
 def process_series(series, test_full_vids=False, db_path='hashes.db', output_clips_path='', output_full_vids_path=''):
@@ -45,10 +45,13 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
             merged_w_extras, new_extras = merge_extras_into_sequences(merged, extras)
             possible_conflicting_sequences = merge_all_sequences(merged_w_extras)
             simplified_possible_conflicting_sequences, missing_frames = simplify_sequences(possible_conflicting_sequences)
-            video_based_sequences = video_based_sequences_restructurer(simplified_possible_conflicting_sequences)
-            mark_videos(series, video_based_sequences)
+            video_based_sequences = mark_videos.video_based_sequences_restructurer(simplified_possible_conflicting_sequences)
+            video_paths = mark_videos.get_video_paths_from_series_dict(series)
             pt(video_paths)
-            run_vid_player(video_paths[5]) 
+            # pt.ex()
+            frame_based_results = mark_videos.mark_videos(video_based_sequences, video_paths)
+            pt(frame_based_results)
+            run_vid_player(video_paths[1]) 
             
             
             debug_print(
@@ -86,6 +89,7 @@ def test_process_series():
         main_folder = 'C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\'
         # series_path = os.path.join(main_folder, 'compiled_tiny_videos_for_testing', 'compiled')
         series_path = os.path.join(main_folder, 'tiny_vids','3_complete_vids_to_test')
+        # series_path = r'C:\Users\user\Downloads\_Tor\My Hero Academia\test_delete'
 
         db_path = 'hashes_tiny_vids.db'
         
