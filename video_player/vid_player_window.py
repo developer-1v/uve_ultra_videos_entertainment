@@ -15,7 +15,8 @@ recognizes keywords in titles:
 '''
 
 
-
+from print_tricks import pt
+pt.easy_import()
 
 import sys
 from PySide6.QtWidgets import (QApplication, QMainWindow, QPushButton, QVBoxLayout, QWidget, 
@@ -24,7 +25,7 @@ from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtMultimediaWidgets import QVideoWidget
 from PySide6.QtCore import QUrl, Qt
 import cv2
-from process_chapters import ChapterOverlay, FrameProcessor
+from video_player.process_chapters import ChapterOverlay, FrameProcessor
 class ControlPanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -88,10 +89,10 @@ class ControlPanel(QWidget):
 
 
 class VideoPlayer(QMainWindow):
-    def __init__(self, video_path):
+    def __init__(self, video_path, prefix):
         super().__init__()
         self.video_path = video_path
-        self.frame_processor = FrameProcessor(video_path, prefix="__cut_frames_")
+        self.frame_processor = FrameProcessor(video_path, prefix)
         self.setWindowTitle("Video Player")
         self.initialize_ui()
         self.setup_media_player()
@@ -102,18 +103,13 @@ class VideoPlayer(QMainWindow):
         self.controlPanel = ControlPanel(self)
         self.controlPanel.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Maximum)
         self.chapter_overlay_widget.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
-
+        
         widget = QWidget(self)
         self.setCentralWidget(widget)
         layout = QVBoxLayout()
         layout.addWidget(self.chapter_overlay_widget)
         layout.addWidget(self.controlPanel)
         widget.setLayout(layout)
-        
-        # self.chapters = [
-        #     {'start_frame': 3, 'end_frame': 33},
-        #     {'start_frame': 55, 'end_frame': 88}
-        # ]
 
     def setup_media_player(self):
         self.mediaPlayer = QMediaPlayer(None)
@@ -123,11 +119,11 @@ class VideoPlayer(QMainWindow):
         self.mediaPlayer.durationChanged.connect(self.update_slider_max)
         self.mediaPlayer.positionChanged.connect(self.update_slider_position)
         self.mediaPlayer.positionChanged.connect(self.update_labels)
-
+        
         cap = cv2.VideoCapture(self.video_path)
         self.frame_rate = cap.get(cv2.CAP_PROP_FPS)
         cap.release()
-
+        
         self.mediaPlayer.positionChanged.connect(self.update_labels)  
 
     def configure_buttons(self):
@@ -217,7 +213,7 @@ class VideoPlayer(QMainWindow):
 if __name__ == "__main__":
     video_path = r'C:\.PythonProjects\uve_ultra_videos_entertainment\videos_for_testing\tiny_vids\3_complete_vids_to_test\marked__s01e01_40.mp4'
     app = QApplication(sys.argv)
-    player = VideoPlayer(video_path)
+    player = VideoPlayer(video_path, prefix="__cut_frames_")
     player.resize(800, 600)
     player.show()
     sys.exit(app.exec())

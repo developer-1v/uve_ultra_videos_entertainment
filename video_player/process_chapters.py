@@ -57,7 +57,7 @@ class ChapterOverlay(QGraphicsView):
 
 
 class FrameProcessor:
-    def __init__(self, video_path, prefix="__cut_frames_"):
+    def __init__(self, video_path, prefix):
         self.video_path = video_path
         self.metadata = read_metadata(video_path)
         

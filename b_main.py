@@ -12,11 +12,10 @@ from b_sort_data import sort_data
 from b_merge_data import get_merged_data
 from merge_extras import merge_extras_into_sequences
 from merge_remaining_sequences import merge_all_sequences
-from utilities import add_to_hashes_db
 from debugging_module import debug_print
 from simplify_sequences import simplify_sequences
 from mark_videos import mark_videos, video_based_sequences_restructurer
-
+from video_player.video_player import run_vid_player
 
 def process_series(series, test_full_vids=False, db_path='hashes.db', output_clips_path='', output_full_vids_path=''):
     frame_hashes = {}
@@ -30,7 +29,7 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
             pt(video_paths)
             use_disk = True
             
-            ## TEST TEMP DELET TODO ##
+            ## TEST TEMP DELETE TODO ##
             ## if database already exists, delete it. 
             if os.path.exists(db_path):
                 os.remove(db_path)
@@ -47,8 +46,9 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
             possible_conflicting_sequences = merge_all_sequences(merged_w_extras)
             simplified_possible_conflicting_sequences, missing_frames = simplify_sequences(possible_conflicting_sequences)
             video_based_sequences = video_based_sequences_restructurer(simplified_possible_conflicting_sequences)
-            # mark_videos(series, video_based_sequences)
-            
+            mark_videos(series, video_based_sequences)
+            pt(video_paths)
+            run_vid_player(video_paths[5]) 
             
             
             debug_print(
