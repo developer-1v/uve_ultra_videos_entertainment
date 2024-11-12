@@ -314,7 +314,10 @@ def test_marking_of_videos():
         '_s01e03_40.mp4': {'sequence 0': [3, 17], 'sequence 1': [22, 24], 'sequence 2': [36, 40], 'sequence 3': [27, 31], 'sequence 4': [44, 48], 'sequence 5': [53, 57], 'sequence 6': [66, 70], 'sequence 7': [90, 94], 'sequence 8': [73, 87]},
         '_s01e04_40.mp4': {'sequence 0': [4, 18], 'sequence 1': [23, 24], 'sequence 2': [37, 41], 'sequence 3': [28, 32], 'sequence 4': [45, 49], 'sequence 5': [54, 58], 'sequence 6': [67, 86], 'sequence 7': [90, 94]}
     }
-    
+
+    # video_based_frame_sequences = {
+    #     '_s01e01_40.mp4': {'sequence 0': [0, 58], 'sequence 1': [58, 70], 'sequence 2': [70, 103]}, 'aa.mp4': {'sequence 0': [0, 58], 'sequence 1': [58, 70], 'sequence 2': [70, 103]}
+    # }
     video_paths = get_video_paths_from_series_dict(series)
     pt(video_paths)
     # pt.ex()

@@ -18,9 +18,7 @@ import mark_videos
 from video_player.video_player import run_vid_player
 
 def process_series(series, test_full_vids=False, db_path='hashes.db', output_clips_path='', output_full_vids_path=''):
-    frame_hashes = {}
-    conflicting_frame_hashes = {}
-    
+
     for series_name, seasons in series.items():
         for season, video_paths in seasons.items():
             
@@ -37,14 +35,18 @@ def process_series(series, test_full_vids=False, db_path='hashes.db', output_cli
                 pt('deleted database!')
                 
             ## process videos
-            video_hashes, conflicting_frame_hashes = process_videos(
-                frame_hashes, conflicting_frame_hashes, video_paths, use_disk=use_disk, db_path=db_path)
+            video_hashes, conflicting_frame_hashes = process_videos(video_paths, use_disk=use_disk, db_path=db_path)
             
             sorted_data = sort_data(conflicting_frame_hashes)
+            pt(sorted_data)
+            pt.ex()
             merged, extras = get_merged_data(sorted_data)
             merged_w_extras, new_extras = merge_extras_into_sequences(merged, extras)
             possible_conflicting_sequences = merge_all_sequences(merged_w_extras)
+            
             simplified_possible_conflicting_sequences, missing_frames = simplify_sequences(possible_conflicting_sequences)
+            pt(video_hashes, conflicting_frame_hashes, sorted_data, merged, extras, merged_w_extras, new_extras, possible_conflicting_sequences, simplified_possible_conflicting_sequences)
+            pt.ex()
             video_based_frame_sequences = mark_videos.video_based_sequences_restructurer(simplified_possible_conflicting_sequences)
             video_paths = mark_videos.get_video_paths_from_series_dict(series)
             # pt.ex()

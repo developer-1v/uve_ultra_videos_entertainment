@@ -55,7 +55,9 @@ def load_hashes_from_db(db_path):
     conn.close()
     return frame_hashes, conflicting_frame_hashes
 
-def process_videos(frame_hashes, conflicting_frame_hashes, video_paths, use_disk=False, db_path='hashes.db'):
+def process_videos(video_paths, use_disk=False, db_path='hashes.db'):
+    frame_hashes = {}
+    conflicting_frame_hashes = {}
     
     if use_disk:
         frame_hashes, conflicting_frame_hashes = load_hashes_from_db(db_path)
