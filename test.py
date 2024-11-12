@@ -1,3 +1,8 @@
+''' Output of one of my generated METADATA for an mkv file.
+C:\\.PythonProjects\\uve_ultra_videos_entertainment\\videos_for_testing\\tiny_vids\\3_complete_vids_to_test\\marked__s01e01_40.mkv
+
+'''
+
 {
     'streams': [
         {

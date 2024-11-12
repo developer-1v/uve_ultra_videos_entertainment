@@ -1,3 +1,8 @@
+''' Output of Chronicle's METADATA for an mkv file (shows up with chapter timestamps in potplayer)
+C:\\Users\\user\\Downloads\\_Tor\\Chronicle.2012.Director.s.Cut.iTA.ENG.AC3.SUB.iTA.ENG.BluRay.1080p.x264.jeddak-MIRCrew.mkv
+'''
+
+
 {
     'streams': [
         {
